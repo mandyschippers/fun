@@ -249,6 +249,427 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Interactive World Objects
+  // ---------------------------------------------------------------------------
+
+  var worldObjects = [];
+  var interactionEffect = null; // { text, x, y, timer }
+
+  /**
+   * Object type definitions with interaction data.
+   */
+  var OBJ_TYPES = {
+    CHEST: {
+      name: 'chest',
+      message: 'You found a treasure chest! It glimmers with ancient gold.',
+      color: '#8a6a2a',
+    },
+    SIGN: {
+      name: 'sign',
+      message: 'Welcome, adventurer! Danger lies ahead...',
+      color: '#6a5a3a',
+    },
+    ORB: {
+      name: 'orb',
+      message: 'The orb pulses with mysterious energy!',
+      color: '#3ae8a0',
+    },
+    SWORD: {
+      name: 'sword',
+      message: 'A legendary sword embedded in stone. You are not yet worthy.',
+      color: '#b0b0c0',
+    },
+  };
+
+  /**
+   * Check if a world object occupies a given tile.
+   */
+  function getObjectAtTile(tx, ty) {
+    for (var i = 0; i < worldObjects.length; i++) {
+      if (worldObjects[i].tileX === tx && worldObjects[i].tileY === ty) {
+        return worldObjects[i];
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Check if a tile is blocked by a world object.
+   */
+  function isObjectBlocking(tx, ty) {
+    return getObjectAtTile(tx, ty) !== null;
+  }
+
+  /**
+   * Get the tile the player is facing (adjacent tile in current direction).
+   */
+  function getFacingTile() {
+    var dx = 0, dy = 0;
+    if (player.direction === DIR.UP) dy = -1;
+    else if (player.direction === DIR.DOWN) dy = 1;
+    else if (player.direction === DIR.LEFT) dx = -1;
+    else if (player.direction === DIR.RIGHT) dx = 1;
+    return { x: player.tileX + dx, y: player.tileY + dy };
+  }
+
+  /**
+   * Check if player is adjacent to a specific tile position.
+   */
+  function isPlayerAdjacentTo(tx, ty) {
+    var adx = Math.abs(player.tileX - tx);
+    var ady = Math.abs(player.tileY - ty);
+    return (adx + ady) === 1;
+  }
+
+  /**
+   * Find the nearest interactable object the player is facing.
+   */
+  function getNearbyInteractable() {
+    var facing = getFacingTile();
+    return getObjectAtTile(facing.x, facing.y);
+  }
+
+  /**
+   * Trigger an interaction with a world object.
+   */
+  function interactWithObject(obj) {
+    interactionEffect = {
+      text: obj.type.message,
+      x: obj.tileX * DRAWN_TILE + DRAWN_TILE / 2,
+      y: obj.tileY * DRAWN_TILE - 10,
+      timer: 2500,
+      color: obj.type.color,
+    };
+    obj.interactAnim = 300; // ms of bounce animation
+  }
+
+  /**
+   * Place world objects on valid walkable tiles.
+   * Uses seeded RNG for deterministic placement.
+   */
+  function placeWorldObjects() {
+    worldObjects = [];
+    var rng = seededRandom(9001);
+
+    // Collect walkable tiles (not solid, not water, not tree, not player spawn)
+    var walkable = [];
+    for (var y = 1; y < mapRows - 1; y++) {
+      for (var x = 1; x < mapCols - 1; x++) {
+        if (!isSolidTile(tileMap[y][x])) {
+          // Skip tiles too close to player spawn
+          var pdx = Math.abs(x - player.tileX);
+          var pdy = Math.abs(y - player.tileY);
+          if (pdx + pdy > 3) {
+            walkable.push({ x: x, y: y });
+          }
+        }
+      }
+    }
+
+    // Shuffle walkable tiles
+    for (var i = walkable.length - 1; i > 0; i--) {
+      var j = Math.floor(rng() * (i + 1));
+      var tmp = walkable[i];
+      walkable[i] = walkable[j];
+      walkable[j] = tmp;
+    }
+
+    // Place objects ensuring minimum spacing
+    var typeList = [OBJ_TYPES.CHEST, OBJ_TYPES.SIGN, OBJ_TYPES.ORB, OBJ_TYPES.SWORD];
+    var placed = 0;
+    var minSpacing = 4;
+
+    for (var w = 0; w < walkable.length && placed < typeList.length; w++) {
+      var candidate = walkable[w];
+      var tooClose = false;
+
+      for (var p = 0; p < worldObjects.length; p++) {
+        var odx = Math.abs(candidate.x - worldObjects[p].tileX);
+        var ody = Math.abs(candidate.y - worldObjects[p].tileY);
+        if (odx + ody < minSpacing) {
+          tooClose = true;
+          break;
+        }
+      }
+
+      if (!tooClose) {
+        worldObjects.push({
+          tileX: candidate.x,
+          tileY: candidate.y,
+          type: typeList[placed],
+          interactAnim: 0,
+        });
+        placed++;
+      }
+    }
+  }
+
+  /**
+   * Update world object animations and interaction effects each frame.
+   */
+  function updateWorldObjects(dt) {
+    // Update object interaction bounce animations
+    for (var i = 0; i < worldObjects.length; i++) {
+      if (worldObjects[i].interactAnim > 0) {
+        worldObjects[i].interactAnim -= dt;
+        if (worldObjects[i].interactAnim < 0) worldObjects[i].interactAnim = 0;
+      }
+    }
+
+    // Update interaction effect timer
+    if (interactionEffect && interactionEffect.timer > 0) {
+      interactionEffect.timer -= dt;
+      if (interactionEffect.timer <= 0) {
+        interactionEffect = null;
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // World Object Sprite Renderers (pixel art with canvas primitives)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Draw a treasure chest sprite.
+   */
+  function drawChest(ctx, sx, sy, animOffset) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+
+    // Chest body
+    ctx.fillStyle = '#8a6a2a';
+    ctx.fillRect(sx + 3 * px, sy + 7 * px + ay, 10 * px, 6 * px);
+    // Chest lid
+    ctx.fillStyle = '#a07a30';
+    ctx.fillRect(sx + 3 * px, sy + 5 * px + ay, 10 * px, 3 * px);
+    // Lid top curve
+    ctx.fillStyle = '#b08a3a';
+    ctx.fillRect(sx + 4 * px, sy + 4 * px + ay, 8 * px, 2 * px);
+    // Metal band
+    ctx.fillStyle = '#c0a040';
+    ctx.fillRect(sx + 3 * px, sy + 8 * px + ay, 10 * px, px);
+    // Lock
+    ctx.fillStyle = '#e8d44a';
+    ctx.fillRect(sx + 7 * px, sy + 9 * px + ay, 2 * px, 2 * px);
+    // Keyhole
+    ctx.fillStyle = '#3a2a1a';
+    ctx.fillRect(sx + 7 * px, sy + 10 * px + ay, px, px);
+    // Dark edge
+    ctx.fillStyle = '#5a4a1a';
+    ctx.fillRect(sx + 3 * px, sy + 12 * px + ay, 10 * px, px);
+  }
+
+  /**
+   * Draw a sign post sprite.
+   */
+  function drawSign(ctx, sx, sy, animOffset) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+
+    // Post
+    ctx.fillStyle = '#6a5a3a';
+    ctx.fillRect(sx + 7 * px, sy + 8 * px + ay, 2 * px, 7 * px);
+    // Sign board
+    ctx.fillStyle = '#8a7a50';
+    ctx.fillRect(sx + 3 * px, sy + 3 * px + ay, 10 * px, 6 * px);
+    // Sign face
+    ctx.fillStyle = '#a09060';
+    ctx.fillRect(sx + 4 * px, sy + 4 * px + ay, 8 * px, 4 * px);
+    // Text lines on sign
+    ctx.fillStyle = '#3a3020';
+    ctx.fillRect(sx + 5 * px, sy + 5 * px + ay, 6 * px, px);
+    ctx.fillRect(sx + 5 * px, sy + 7 * px + ay, 4 * px, px);
+    // Sign top edge highlight
+    ctx.fillStyle = '#b0a070';
+    ctx.fillRect(sx + 3 * px, sy + 3 * px + ay, 10 * px, px);
+  }
+
+  /**
+   * Draw a glowing orb sprite.
+   */
+  function drawOrb(ctx, sx, sy, animOffset, time) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+    var pulse = Math.sin((time || 0) * 0.004) * 0.3 + 0.7;
+
+    // Pedestal
+    ctx.fillStyle = '#5a5a6a';
+    ctx.fillRect(sx + 5 * px, sy + 11 * px, 6 * px, 3 * px);
+    ctx.fillStyle = '#4a4a5a';
+    ctx.fillRect(sx + 4 * px, sy + 13 * px, 8 * px, 2 * px);
+
+    // Outer glow
+    ctx.fillStyle = 'rgba(58, 232, 160, ' + (0.2 * pulse) + ')';
+    ctx.fillRect(sx + 4 * px, sy + 4 * px + ay, 8 * px, 8 * px);
+
+    // Orb body
+    ctx.fillStyle = 'rgba(58, 200, 140, ' + (0.8 * pulse) + ')';
+    ctx.fillRect(sx + 5 * px, sy + 5 * px + ay, 6 * px, 6 * px);
+
+    // Inner highlight
+    ctx.fillStyle = 'rgba(140, 255, 200, ' + (0.6 * pulse) + ')';
+    ctx.fillRect(sx + 6 * px, sy + 6 * px + ay, 3 * px, 3 * px);
+
+    // Sparkle
+    ctx.fillStyle = 'rgba(255, 255, 255, ' + (0.5 * pulse) + ')';
+    ctx.fillRect(sx + 7 * px, sy + 6 * px + ay, px, px);
+  }
+
+  /**
+   * Draw a sword in stone sprite.
+   */
+  function drawSwordInStone(ctx, sx, sy, animOffset, time) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+    var shimmer = Math.sin((time || 0) * 0.003) * 0.2 + 0.8;
+
+    // Stone base
+    ctx.fillStyle = '#6a6a70';
+    ctx.fillRect(sx + 3 * px, sy + 10 * px, 10 * px, 4 * px);
+    ctx.fillStyle = '#5a5a62';
+    ctx.fillRect(sx + 4 * px, sy + 9 * px, 8 * px, 2 * px);
+    // Stone highlight
+    ctx.fillStyle = '#7a7a82';
+    ctx.fillRect(sx + 5 * px, sy + 10 * px, 4 * px, px);
+
+    // Sword blade
+    ctx.fillStyle = 'rgba(180, 180, 210, ' + shimmer + ')';
+    ctx.fillRect(sx + 7 * px, sy + 2 * px + ay, 2 * px, 8 * px);
+    // Blade highlight
+    ctx.fillStyle = 'rgba(220, 220, 240, ' + (shimmer * 0.7) + ')';
+    ctx.fillRect(sx + 7 * px, sy + 2 * px + ay, px, 6 * px);
+    // Blade tip
+    ctx.fillStyle = 'rgba(200, 200, 230, ' + shimmer + ')';
+    ctx.fillRect(sx + 7 * px, sy + 1 * px + ay, 2 * px, px);
+
+    // Guard / crosspiece
+    ctx.fillStyle = '#c0a040';
+    ctx.fillRect(sx + 5 * px, sy + 9 * px + ay, 6 * px, px);
+
+    // Grip
+    ctx.fillStyle = '#5a3a1a';
+    ctx.fillRect(sx + 7 * px, sy + 10 * px + ay, 2 * px, px);
+
+    // Pommel gem
+    ctx.fillStyle = '#e03030';
+    ctx.fillRect(sx + 7 * px, sy + 11 * px + ay, 2 * px, px);
+  }
+
+  /**
+   * Draw a world object at its tile position.
+   */
+  function drawWorldObject(ctx, obj, time) {
+    var sx = obj.tileX * DRAWN_TILE;
+    var sy = obj.tileY * DRAWN_TILE;
+    var animOffset = 0;
+
+    // Bounce animation on interaction
+    if (obj.interactAnim > 0) {
+      animOffset = -Math.sin(obj.interactAnim / 300 * Math.PI) * SCALE * 2;
+    }
+
+    if (obj.type === OBJ_TYPES.CHEST) {
+      drawChest(ctx, sx, sy, animOffset);
+    } else if (obj.type === OBJ_TYPES.SIGN) {
+      drawSign(ctx, sx, sy, animOffset);
+    } else if (obj.type === OBJ_TYPES.ORB) {
+      drawOrb(ctx, sx, sy, animOffset, time);
+    } else if (obj.type === OBJ_TYPES.SWORD) {
+      drawSwordInStone(ctx, sx, sy, animOffset, time);
+    }
+  }
+
+  /**
+   * Draw interaction indicator ("!") above an interactable object the player faces.
+   */
+  function drawInteractionIndicator(ctx, obj, time) {
+    var sx = obj.tileX * DRAWN_TILE;
+    var sy = obj.tileY * DRAWN_TILE;
+    var bob = Math.sin(time * 0.006) * SCALE * 1.5;
+    var pulse = Math.sin(time * 0.004) * 0.3 + 0.7;
+
+    // Draw "!" bubble
+    var bx = sx + DRAWN_TILE / 2 - 3 * SCALE;
+    var by = sy - 4 * SCALE + bob;
+
+    // Bubble background
+    ctx.fillStyle = 'rgba(232, 212, 74, ' + pulse + ')';
+    ctx.fillRect(bx, by, 6 * SCALE, 7 * SCALE);
+
+    // "!" character
+    ctx.fillStyle = '#1a1a0a';
+    ctx.fillRect(bx + 2 * SCALE, by + SCALE, 2 * SCALE, 3 * SCALE);
+    ctx.fillRect(bx + 2 * SCALE, by + 5 * SCALE, 2 * SCALE, SCALE);
+  }
+
+  /**
+   * Draw the interaction effect (message popup).
+   */
+  function drawInteractionEffect(ctx, effect) {
+    if (!effect || effect.timer <= 0) return;
+
+    var alpha = Math.min(1, effect.timer / 500);
+    var textScale = 2;
+    var maxCharsPerLine = 30;
+    var words = effect.text.split(' ');
+    var lines = [];
+    var currentLine = '';
+
+    for (var i = 0; i < words.length; i++) {
+      var testLine = currentLine.length > 0 ? currentLine + ' ' + words[i] : words[i];
+      if (testLine.length > maxCharsPerLine && currentLine.length > 0) {
+        lines.push(currentLine);
+        currentLine = words[i];
+      } else {
+        currentLine = testLine;
+      }
+    }
+    if (currentLine.length > 0) lines.push(currentLine);
+
+    // Calculate box dimensions
+    var maxWidth = 0;
+    for (var l = 0; l < lines.length; l++) {
+      var w = measurePixelText(lines[l], textScale);
+      if (w > maxWidth) maxWidth = w;
+    }
+    var lineHeight = 7 * textScale + 4;
+    var boxW = maxWidth + 20;
+    var boxH = lines.length * lineHeight + 16;
+    var boxX = Math.floor((canvas.width - boxW) / 2);
+    var boxY = canvas.height - boxH - 20;
+
+    // Box background
+    ctx.fillStyle = 'rgba(10, 26, 10, ' + (0.9 * alpha) + ')';
+    ctx.fillRect(boxX, boxY, boxW, boxH);
+
+    // Box border
+    ctx.fillStyle = 'rgba(106, 170, 58, ' + (0.8 * alpha) + ')';
+    ctx.fillRect(boxX, boxY, boxW, 2);
+    ctx.fillRect(boxX, boxY + boxH - 2, boxW, 2);
+    ctx.fillRect(boxX, boxY, 2, boxH);
+    ctx.fillRect(boxX + boxW - 2, boxY, 2, boxH);
+
+    // Corner accents
+    ctx.fillStyle = 'rgba(232, 212, 74, ' + (0.7 * alpha) + ')';
+    ctx.fillRect(boxX, boxY, 6, 2);
+    ctx.fillRect(boxX, boxY, 2, 6);
+    ctx.fillRect(boxX + boxW - 6, boxY, 6, 2);
+    ctx.fillRect(boxX + boxW - 2, boxY, 2, 6);
+    ctx.fillRect(boxX, boxY + boxH - 2, 6, 2);
+    ctx.fillRect(boxX, boxY + boxH - 6, 2, 6);
+    ctx.fillRect(boxX + boxW - 6, boxY + boxH - 2, 6, 2);
+    ctx.fillRect(boxX + boxW - 2, boxY + boxH - 6, 2, 6);
+
+    // Draw text lines
+    for (var l = 0; l < lines.length; l++) {
+      var tw = measurePixelText(lines[l], textScale);
+      var tx = boxX + Math.floor((boxW - tw) / 2);
+      var ty = boxY + 10 + l * lineHeight;
+      drawPixelText(ctx, lines[l], tx, ty, textScale, 'rgba(200, 230, 180, ' + alpha + ')');
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Player Character
   // ---------------------------------------------------------------------------
 
@@ -691,6 +1112,15 @@
       e.preventDefault();
       keys[e.key] = true;
     }
+
+    // Interaction: spacebar or enter
+    if ((e.key === ' ' || e.key === 'Enter') && gameState === STATE.PLAYING) {
+      e.preventDefault();
+      var nearObj = getNearbyInteractable();
+      if (nearObj) {
+        interactWithObject(nearObj);
+      }
+    }
   });
 
   window.addEventListener('keyup', function (e) {
@@ -717,8 +1147,11 @@
       return false;
     }
 
-    // Collision check
+    // Collision check (tiles and objects)
     if (isSolidTile(tileMap[newTY][newTX])) {
+      return false;
+    }
+    if (isObjectBlocking(newTX, newTY)) {
       return false;
     }
 
@@ -823,6 +1256,9 @@
     player.targetX = player.screenX;
     player.targetY = player.screenY;
     player.moving = false;
+
+    // Place interactive objects on valid tiles
+    placeWorldObjects();
   }
 
   /**
@@ -840,8 +1276,22 @@
       }
     }
 
+    // Draw world objects
+    for (var oi = 0; oi < worldObjects.length; oi++) {
+      drawWorldObject(ctx, worldObjects[oi], titleTime);
+    }
+
     // Draw player on top
     drawPlayer(ctx, player.screenX, player.screenY, player.direction, player.walkFrame);
+
+    // Draw interaction indicator if player faces an interactable
+    var nearInteractable = getNearbyInteractable();
+    if (nearInteractable) {
+      drawInteractionIndicator(ctx, nearInteractable, titleTime);
+    }
+
+    // Draw interaction effect popup
+    drawInteractionEffect(ctx, interactionEffect);
   }
 
   // ---------------------------------------------------------------------------
@@ -867,6 +1317,7 @@
 
       // Render the game world underneath
       updatePlayer(dt);
+      updateWorldObjects(dt);
       render();
 
       // Fade overlay from opaque to transparent
@@ -879,6 +1330,7 @@
       }
     } else {
       updatePlayer(dt);
+      updateWorldObjects(dt);
       render();
     }
 
