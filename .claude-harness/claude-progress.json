@@ -1,0 +1,17 @@
+{
+  "lastUpdated": "2026-02-28T22:30:03Z",
+  "currentProject": "fun",
+  "lastSession": {
+    "summary": "Initial harness setup (v3.0)",
+    "completedTasks": [],
+    "blockers": [],
+    "nextSteps": ["Review CLAUDE.md and customize", "Run /claude-harness:start to begin"]
+  },
+  "recentChanges": [],
+  "knownIssues": [],
+  "environmentState": {
+    "devServerRunning": false,
+    "lastSuccessfulBuild": null,
+    "lastTypeCheck": null
+  }
+}

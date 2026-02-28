@@ -1,0 +1,23 @@
+{
+  "version": 3,
+  "projectType": "",
+  "techStack": {
+    "framework": "",
+    "language": "Unknown",
+    "database": "",
+    "testFramework": ""
+  },
+  "structure": {
+    "entryPoints": [],
+    "components": [],
+    "api": [],
+    "tests": []
+  },
+  "patterns": {
+    "naming": {},
+    "fileOrganization": {},
+    "codeStyle": {}
+  },
+  "discoveredAt": "2026-02-28T22:30:03Z",
+  "lastUpdated": "2026-02-28T22:30:03Z"
+}

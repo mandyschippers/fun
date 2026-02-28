@@ -1,0 +1,336 @@
+{
+  "version": 3,
+  "features": [
+    {
+      "id": "feature-001",
+      "name": "Canvas game engine with tile map",
+      "description": "HTML5 Canvas rendering engine with a tile-based map system, greenish background, and pixelated retro aesthetic",
+      "priority": 1,
+      "status": "pending",
+      "acceptanceCriteria": [
+        {
+          "scenario": "Canvas renders tile map",
+          "given": "The page is loaded in a browser",
+          "when": "The canvas initializes",
+          "then": "A top-down tile map is rendered with greenish tiles filling the viewport"
+        },
+        {
+          "scenario": "Pixel-art rendering",
+          "given": "The canvas is rendering",
+          "when": "Tiles and sprites are drawn",
+          "then": "All graphics use nearest-neighbor scaling with no anti-aliasing blur"
+        }
+      ],
+      "prdMetadata": {
+        "section": "Core",
+        "breakdown": "prd-20260301"
+      },
+      "verification": {
+        "build": null,
+        "tests": null,
+        "lint": null,
+        "typecheck": null
+      },
+      "relatedFiles": [],
+      "github": {
+        "issueNumber": null,
+        "prNumber": null,
+        "branch": "feature/feature-001"
+      },
+      "createdAt": "2026-03-01T00:00:00.000Z",
+      "updatedAt": "2026-03-01T00:00:00.000Z"
+    },
+    {
+      "id": "feature-002",
+      "name": "Arrow-key character movement",
+      "description": "A player character sprite that moves around the tile map using arrow keys, with collision boundaries",
+      "priority": 2,
+      "status": "pending",
+      "acceptanceCriteria": [
+        {
+          "scenario": "Character moves with arrow keys",
+          "given": "The game is loaded and the character is on screen",
+          "when": "The player presses an arrow key",
+          "then": "The character moves one tile in that direction with a walking animation"
+        },
+        {
+          "scenario": "Character stays in bounds",
+          "given": "The character is at the edge of the map",
+          "when": "The player presses an arrow key toward the edge",
+          "then": "The character does not move off the map"
+        },
+        {
+          "scenario": "Smooth movement feel",
+          "given": "The player holds an arrow key",
+          "when": "The key is held continuously",
+          "then": "The character moves continuously at a consistent pace"
+        }
+      ],
+      "prdMetadata": {
+        "section": "Core",
+        "breakdown": "prd-20260301"
+      },
+      "verification": {
+        "build": null,
+        "tests": null,
+        "lint": null,
+        "typecheck": null
+      },
+      "relatedFiles": [],
+      "github": {
+        "issueNumber": null,
+        "prNumber": null,
+        "branch": "feature/feature-002"
+      },
+      "createdAt": "2026-03-01T00:00:00.000Z",
+      "updatedAt": "2026-03-01T00:00:00.000Z"
+    },
+    {
+      "id": "feature-003",
+      "name": "Welcome to the Realm title screen",
+      "description": "A retro-styled title/landing screen with 'Welcome to the Realm' text and a press-start prompt",
+      "priority": 3,
+      "status": "pending",
+      "acceptanceCriteria": [
+        {
+          "scenario": "Title screen displays on load",
+          "given": "A visitor opens the website",
+          "when": "The page finishes loading",
+          "then": "'Welcome to the Realm' is displayed in a pixel font with a retro aesthetic"
+        },
+        {
+          "scenario": "Start prompt and transition",
+          "given": "The title screen is displayed",
+          "when": "The visitor presses any key",
+          "then": "The title screen transitions to the game world"
+        }
+      ],
+      "prdMetadata": {
+        "section": "Core",
+        "breakdown": "prd-20260301"
+      },
+      "verification": {
+        "build": null,
+        "tests": null,
+        "lint": null,
+        "typecheck": null
+      },
+      "relatedFiles": [],
+      "github": {
+        "issueNumber": null,
+        "prNumber": null,
+        "branch": "feature/feature-003"
+      },
+      "createdAt": "2026-03-01T00:00:00.000Z",
+      "updatedAt": "2026-03-01T00:00:00.000Z"
+    },
+    {
+      "id": "feature-004",
+      "name": "Interactive world objects",
+      "description": "Placeable objects on the map that the player can walk up to and interact with via a button press",
+      "priority": 4,
+      "status": "pending",
+      "acceptanceCriteria": [
+        {
+          "scenario": "Objects are visible on the map",
+          "given": "The game world is loaded",
+          "when": "The player looks at the map",
+          "then": "Interactive objects are visible as distinct pixel-art sprites on specific tiles"
+        },
+        {
+          "scenario": "Player can interact with objects",
+          "given": "The character is adjacent to an interactive object",
+          "when": "The player presses spacebar or enter",
+          "then": "An interaction is triggered (e.g., dialogue box, animation, sound)"
+        },
+        {
+          "scenario": "Objects block movement",
+          "given": "An object occupies a tile",
+          "when": "The player tries to walk onto that tile",
+          "then": "The character is blocked and cannot pass through the object"
+        }
+      ],
+      "prdMetadata": {
+        "section": "Core",
+        "breakdown": "prd-20260301"
+      },
+      "verification": {
+        "build": null,
+        "tests": null,
+        "lint": null,
+        "typecheck": null
+      },
+      "relatedFiles": [],
+      "github": {
+        "issueNumber": null,
+        "prNumber": null,
+        "branch": "feature/feature-004"
+      },
+      "createdAt": "2026-03-01T00:00:00.000Z",
+      "updatedAt": "2026-03-01T00:00:00.000Z"
+    },
+    {
+      "id": "feature-005",
+      "name": "Fantasy + sci-fi themed world design",
+      "description": "Themed tile art, objects, and environmental details blending fantasy and sci-fi elements",
+      "priority": 5,
+      "status": "pending",
+      "acceptanceCriteria": [
+        {
+          "scenario": "Mixed theme environment",
+          "given": "The player explores the world",
+          "when": "They look at the environment",
+          "then": "Both fantasy elements (trees, castles, crystals) and sci-fi elements (terminals, ships, tech) are present"
+        },
+        {
+          "scenario": "Coherent pixel art style",
+          "given": "All themed assets are rendered",
+          "when": "The player views any area of the map",
+          "then": "All art uses a consistent pixel-art style despite the genre mashup"
+        }
+      ],
+      "prdMetadata": {
+        "section": "Theme",
+        "breakdown": "prd-20260301"
+      },
+      "verification": {
+        "build": null,
+        "tests": null,
+        "lint": null,
+        "typecheck": null
+      },
+      "relatedFiles": [],
+      "github": {
+        "issueNumber": null,
+        "prNumber": null,
+        "branch": "feature/feature-005"
+      },
+      "createdAt": "2026-03-01T00:00:00.000Z",
+      "updatedAt": "2026-03-01T00:00:00.000Z"
+    },
+    {
+      "id": "feature-006",
+      "name": "Absurdist dialogue and interaction system",
+      "description": "A dialogue/text box system for NPC and object interactions featuring absurdist british comedy writing",
+      "priority": 6,
+      "status": "pending",
+      "acceptanceCriteria": [
+        {
+          "scenario": "Dialogue box appears on interaction",
+          "given": "The player interacts with an object or NPC",
+          "when": "The interaction triggers",
+          "then": "A retro-styled text box appears with dialogue text that types out letter by letter"
+        },
+        {
+          "scenario": "Dialogue is funny and themed",
+          "given": "A dialogue box is showing",
+          "when": "The player reads the text",
+          "then": "The content is absurdist comedy with pop culture references"
+        },
+        {
+          "scenario": "Dialogue can be dismissed",
+          "given": "A dialogue box is open",
+          "when": "The player presses spacebar or enter",
+          "then": "The dialogue box closes and the player regains control"
+        }
+      ],
+      "prdMetadata": {
+        "section": "Interactions",
+        "breakdown": "prd-20260301"
+      },
+      "verification": {
+        "build": null,
+        "tests": null,
+        "lint": null,
+        "typecheck": null
+      },
+      "relatedFiles": [],
+      "github": {
+        "issueNumber": null,
+        "prNumber": null,
+        "branch": "feature/feature-006"
+      },
+      "createdAt": "2026-03-01T00:00:00.000Z",
+      "updatedAt": "2026-03-01T00:00:00.000Z"
+    },
+    {
+      "id": "feature-007",
+      "name": "Themed NPCs and interactive content",
+      "description": "Populate the world with funny NPCs and interactable items that reference favorite shows and absurdist humor",
+      "priority": 7,
+      "status": "pending",
+      "acceptanceCriteria": [
+        {
+          "scenario": "Multiple NPCs in the world",
+          "given": "The player explores the map",
+          "when": "They encounter NPC characters",
+          "then": "At least 5 distinct NPCs are placed around the world with unique sprites"
+        },
+        {
+          "scenario": "Each interaction is unique",
+          "given": "The player interacts with different NPCs/objects",
+          "when": "They trigger each interaction",
+          "then": "Each NPC/object has its own unique dialogue or interaction behavior"
+        }
+      ],
+      "prdMetadata": {
+        "section": "Content",
+        "breakdown": "prd-20260301"
+      },
+      "verification": {
+        "build": null,
+        "tests": null,
+        "lint": null,
+        "typecheck": null
+      },
+      "relatedFiles": [],
+      "github": {
+        "issueNumber": null,
+        "prNumber": null,
+        "branch": "feature/feature-007"
+      },
+      "createdAt": "2026-03-01T00:00:00.000Z",
+      "updatedAt": "2026-03-01T00:00:00.000Z"
+    },
+    {
+      "id": "feature-008",
+      "name": "90s web nostalgia polish",
+      "description": "Visual flair inspired by 90s websites: hit counter, under construction GIF, guestbook, visitor counter, marquee text",
+      "priority": 8,
+      "status": "pending",
+      "acceptanceCriteria": [
+        {
+          "scenario": "90s web elements visible",
+          "given": "The page is loaded",
+          "when": "The visitor views the full page",
+          "then": "At least 3 classic 90s web elements are visible (hit counter, under construction, marquee, etc.)"
+        },
+        {
+          "scenario": "Elements are comedic",
+          "given": "90s elements are displayed",
+          "when": "The visitor reads/views them",
+          "then": "The elements have a humorous twist (e.g., hit counter stuck at 42, guestbook signed by fictional characters)"
+        }
+      ],
+      "prdMetadata": {
+        "section": "Aesthetic",
+        "breakdown": "prd-20260301"
+      },
+      "verification": {
+        "build": null,
+        "tests": null,
+        "lint": null,
+        "typecheck": null
+      },
+      "relatedFiles": [],
+      "github": {
+        "issueNumber": null,
+        "prNumber": null,
+        "branch": "feature/feature-008"
+      },
+      "createdAt": "2026-03-01T00:00:00.000Z",
+      "updatedAt": "2026-03-01T00:00:00.000Z"
+    }
+  ],
+  "fixes": []
+}
