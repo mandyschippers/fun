@@ -369,12 +369,324 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Game State
+  // ---------------------------------------------------------------------------
+
+  var STATE = { TITLE: 0, TRANSITION: 1, PLAYING: 2 };
+  var gameState = STATE.TITLE;
+  var titleAlpha = 1;          // Used for fade-out transition
+  var transitionTimer = 0;
+  var TRANSITION_DURATION = 1200; // ms for fade-out
+
+  // Title screen animation state
+  var titleTime = 0;           // Accumulated time for animations
+  var titleStars = [];         // Decorative background stars
+
+  /**
+   * Generate decorative stars for the title screen background.
+   */
+  function generateTitleStars(count) {
+    var stars = [];
+    var rng = seededRandom(1337);
+    for (var i = 0; i < count; i++) {
+      stars.push({
+        x: rng(),
+        y: rng(),
+        size: Math.floor(rng() * 3) + 1,
+        speed: rng() * 0.5 + 0.2,
+        brightness: rng(),
+      });
+    }
+    return stars;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Title Screen Renderer
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Draw a pixel-art border frame on the canvas.
+   */
+  function drawRetroBorder(ctx, w, h, time) {
+    var borderWidth = 6;
+    var cornerSize = 18;
+    var pulse = Math.sin(time * 0.002) * 0.15 + 0.85;
+
+    // Outer border glow
+    ctx.fillStyle = 'rgba(74, 140, 52, ' + (0.4 * pulse) + ')';
+    ctx.fillRect(0, 0, w, borderWidth);
+    ctx.fillRect(0, h - borderWidth, w, borderWidth);
+    ctx.fillRect(0, 0, borderWidth, h);
+    ctx.fillRect(w - borderWidth, 0, borderWidth, h);
+
+    // Inner border line
+    ctx.fillStyle = 'rgba(106, 170, 58, ' + (0.7 * pulse) + ')';
+    ctx.fillRect(borderWidth, borderWidth, w - 2 * borderWidth, 2);
+    ctx.fillRect(borderWidth, h - borderWidth - 2, w - 2 * borderWidth, 2);
+    ctx.fillRect(borderWidth, borderWidth, 2, h - 2 * borderWidth);
+    ctx.fillRect(w - borderWidth - 2, borderWidth, 2, h - 2 * borderWidth);
+
+    // Corner decorations
+    var cornerColor = 'rgba(123, 194, 74, ' + (0.8 * pulse) + ')';
+    ctx.fillStyle = cornerColor;
+    // Top-left
+    ctx.fillRect(borderWidth, borderWidth, cornerSize, 3);
+    ctx.fillRect(borderWidth, borderWidth, 3, cornerSize);
+    // Top-right
+    ctx.fillRect(w - borderWidth - cornerSize, borderWidth, cornerSize, 3);
+    ctx.fillRect(w - borderWidth - 3, borderWidth, 3, cornerSize);
+    // Bottom-left
+    ctx.fillRect(borderWidth, h - borderWidth - 3, cornerSize, 3);
+    ctx.fillRect(borderWidth, h - borderWidth - cornerSize, 3, cornerSize);
+    // Bottom-right
+    ctx.fillRect(w - borderWidth - cornerSize, h - borderWidth - 3, cornerSize, 3);
+    ctx.fillRect(w - borderWidth - 3, h - borderWidth - cornerSize, 3, cornerSize);
+  }
+
+  /**
+   * Draw twinkling stars on the title screen.
+   */
+  function drawTitleStars(ctx, stars, w, h, time) {
+    for (var i = 0; i < stars.length; i++) {
+      var s = stars[i];
+      var twinkle = Math.sin(time * 0.003 * s.speed + s.brightness * 6.28) * 0.5 + 0.5;
+      var alpha = twinkle * 0.7 + 0.1;
+      var green = Math.floor(120 + twinkle * 80);
+      ctx.fillStyle = 'rgba(' + Math.floor(80 + twinkle * 40) + ', ' + green + ', ' + Math.floor(60 + twinkle * 30) + ', ' + alpha + ')';
+      var sx = s.x * w;
+      var sy = s.y * h;
+      var sz = s.size;
+      // Draw cross-shaped star
+      ctx.fillRect(sx, sy - sz, sz, sz * 3);
+      ctx.fillRect(sx - sz, sy, sz * 3, sz);
+    }
+  }
+
+  /**
+   * Draw pixel-art text character by character (blocky retro style).
+   * Each character is drawn on a 5x7 pixel grid, scaled up.
+   */
+  var PIXEL_FONT = {
+    'A': [0x7C,0x12,0x11,0x12,0x7C],
+    'B': [0x7F,0x49,0x49,0x49,0x36],
+    'C': [0x3E,0x41,0x41,0x41,0x22],
+    'D': [0x7F,0x41,0x41,0x22,0x1C],
+    'E': [0x7F,0x49,0x49,0x49,0x41],
+    'F': [0x7F,0x09,0x09,0x09,0x01],
+    'G': [0x3E,0x41,0x49,0x49,0x7A],
+    'H': [0x7F,0x08,0x08,0x08,0x7F],
+    'I': [0x00,0x41,0x7F,0x41,0x00],
+    'J': [0x20,0x40,0x41,0x3F,0x01],
+    'K': [0x7F,0x08,0x14,0x22,0x41],
+    'L': [0x7F,0x40,0x40,0x40,0x40],
+    'M': [0x7F,0x02,0x0C,0x02,0x7F],
+    'N': [0x7F,0x04,0x08,0x10,0x7F],
+    'O': [0x3E,0x41,0x41,0x41,0x3E],
+    'P': [0x7F,0x09,0x09,0x09,0x06],
+    'Q': [0x3E,0x41,0x51,0x21,0x5E],
+    'R': [0x7F,0x09,0x19,0x29,0x46],
+    'S': [0x46,0x49,0x49,0x49,0x31],
+    'T': [0x01,0x01,0x7F,0x01,0x01],
+    'U': [0x3F,0x40,0x40,0x40,0x3F],
+    'V': [0x1F,0x20,0x40,0x20,0x1F],
+    'W': [0x3F,0x40,0x38,0x40,0x3F],
+    'X': [0x63,0x14,0x08,0x14,0x63],
+    'Y': [0x07,0x08,0x70,0x08,0x07],
+    'Z': [0x61,0x51,0x49,0x45,0x43],
+    '0': [0x3E,0x51,0x49,0x45,0x3E],
+    '1': [0x00,0x42,0x7F,0x40,0x00],
+    '2': [0x42,0x61,0x51,0x49,0x46],
+    '3': [0x22,0x41,0x49,0x49,0x36],
+    '4': [0x18,0x14,0x12,0x7F,0x10],
+    '5': [0x27,0x45,0x45,0x45,0x39],
+    '6': [0x3C,0x4A,0x49,0x49,0x30],
+    '7': [0x01,0x71,0x09,0x05,0x03],
+    '8': [0x36,0x49,0x49,0x49,0x36],
+    '9': [0x06,0x49,0x49,0x29,0x1E],
+    ' ': [0x00,0x00,0x00,0x00,0x00],
+    '.': [0x00,0x60,0x60,0x00,0x00],
+    '!': [0x00,0x00,0x5F,0x00,0x00],
+    '?': [0x02,0x01,0x51,0x09,0x06],
+    '-': [0x08,0x08,0x08,0x08,0x08],
+    ':': [0x00,0x36,0x36,0x00,0x00],
+    ',': [0x00,0x80,0x60,0x00,0x00],
+  };
+
+  /**
+   * Draw a string using the pixel font. Returns total width drawn.
+   * charScale is how many screen pixels per font pixel.
+   */
+  function drawPixelText(ctx, text, x, y, charScale, color) {
+    var charWidth = 5;
+    var charHeight = 7;
+    var spacing = 1; // pixels between chars
+    var totalWidth = 0;
+
+    ctx.fillStyle = color;
+
+    for (var c = 0; c < text.length; c++) {
+      var ch = text.charAt(c).toUpperCase();
+      var glyph = PIXEL_FONT[ch];
+      if (!glyph) glyph = PIXEL_FONT[' '];
+
+      for (var col = 0; col < charWidth; col++) {
+        var bits = glyph[col];
+        for (var row = 0; row < charHeight; row++) {
+          if (bits & (1 << row)) {
+            ctx.fillRect(
+              x + (c * (charWidth + spacing) + col) * charScale,
+              y + row * charScale,
+              charScale,
+              charScale
+            );
+          }
+        }
+      }
+      totalWidth += (charWidth + spacing) * charScale;
+    }
+    return totalWidth;
+  }
+
+  /**
+   * Measure the width of a string in pixel font units.
+   */
+  function measurePixelText(text, charScale) {
+    var charWidth = 5;
+    var spacing = 1;
+    return text.length * (charWidth + spacing) * charScale;
+  }
+
+  /**
+   * Draw a decorative sword/shield emblem below the title.
+   */
+  function drawEmblem(ctx, cx, cy, scale, time) {
+    var px = scale;
+    var glow = Math.sin(time * 0.003) * 0.2 + 0.8;
+
+    // Shield shape
+    ctx.fillStyle = 'rgba(42, 106, 26, ' + glow + ')';
+    ctx.fillRect(cx - 5 * px, cy - 6 * px, 10 * px, 10 * px);
+    ctx.fillRect(cx - 4 * px, cy + 4 * px, 8 * px, 2 * px);
+    ctx.fillRect(cx - 3 * px, cy + 6 * px, 6 * px, 2 * px);
+    ctx.fillRect(cx - 1 * px, cy + 8 * px, 2 * px, 2 * px);
+
+    // Shield inner
+    ctx.fillStyle = 'rgba(74, 138, 58, ' + glow + ')';
+    ctx.fillRect(cx - 3 * px, cy - 4 * px, 6 * px, 7 * px);
+
+    // Shield cross emblem
+    ctx.fillStyle = 'rgba(232, 212, 74, ' + glow + ')';
+    ctx.fillRect(cx - px, cy - 4 * px, 2 * px, 7 * px);
+    ctx.fillRect(cx - 3 * px, cy - 1 * px, 6 * px, 2 * px);
+
+    // Sword left
+    ctx.fillStyle = 'rgba(180, 180, 200, ' + glow + ')';
+    ctx.fillRect(cx - 10 * px, cy - 10 * px, px, 14 * px); // blade
+    ctx.fillStyle = 'rgba(120, 90, 40, ' + glow + ')';
+    ctx.fillRect(cx - 12 * px, cy + 3 * px, 5 * px, px); // guard
+    ctx.fillStyle = 'rgba(100, 70, 30, ' + glow + ')';
+    ctx.fillRect(cx - 10 * px, cy + 4 * px, px, 3 * px); // grip
+
+    // Sword right (mirrored)
+    ctx.fillStyle = 'rgba(180, 180, 200, ' + glow + ')';
+    ctx.fillRect(cx + 9 * px, cy - 10 * px, px, 14 * px);
+    ctx.fillStyle = 'rgba(120, 90, 40, ' + glow + ')';
+    ctx.fillRect(cx + 7 * px, cy + 3 * px, 5 * px, px);
+    ctx.fillStyle = 'rgba(100, 70, 30, ' + glow + ')';
+    ctx.fillRect(cx + 9 * px, cy + 4 * px, px, 3 * px);
+  }
+
+  /**
+   * Render the title screen.
+   */
+  function renderTitleScreen(time) {
+    var w = canvas.width;
+    var h = canvas.height;
+
+    // Dark background with subtle gradient feel
+    ctx.fillStyle = '#0a1a0a';
+    ctx.fillRect(0, 0, w, h);
+
+    // Draw twinkling stars
+    drawTitleStars(ctx, titleStars, w, h, time);
+
+    // Draw retro border
+    drawRetroBorder(ctx, w, h, time);
+
+    // Calculate title text scale based on canvas size
+    var titleScale = Math.max(3, Math.floor(Math.min(w, h) / 140));
+    var titleText = 'Welcome to the Realm';
+    var titleWidth = measurePixelText(titleText, titleScale);
+    var titleX = Math.floor((w - titleWidth) / 2);
+    var titleY = Math.floor(h * 0.28);
+
+    // Title shadow
+    drawPixelText(ctx, titleText, titleX + titleScale, titleY + titleScale, titleScale, 'rgba(0, 0, 0, 0.5)');
+
+    // Title glow effect
+    var glowPulse = Math.sin(time * 0.002) * 0.15 + 0.85;
+    var glowG = Math.floor(180 * glowPulse + 40);
+    var glowColor = 'rgb(' + Math.floor(glowG * 0.6) + ', ' + glowG + ', ' + Math.floor(glowG * 0.3) + ')';
+    drawPixelText(ctx, titleText, titleX, titleY, titleScale, glowColor);
+
+    // Bright highlight on top
+    var hiG = Math.floor(220 * glowPulse + 35);
+    drawPixelText(ctx, titleText, titleX, titleY - Math.floor(titleScale * 0.3), titleScale, 'rgba(' + Math.floor(hiG * 0.7) + ', ' + hiG + ', ' + Math.floor(hiG * 0.4) + ', 0.3)');
+
+    // Draw decorative emblem
+    var emblemScale = Math.max(2, Math.floor(titleScale * 0.8));
+    drawEmblem(ctx, Math.floor(w / 2), Math.floor(h * 0.50), emblemScale, time);
+
+    // "Press any key to begin" - flashing
+    var promptScale = Math.max(2, Math.floor(titleScale * 0.5));
+    var promptText = 'Press any key to begin';
+    var promptWidth = measurePixelText(promptText, promptScale);
+    var promptX = Math.floor((w - promptWidth) / 2);
+    var promptY = Math.floor(h * 0.72);
+
+    // Flash: visible for ~60% of a 1.2s cycle
+    var flashCycle = (time % 1200) / 1200;
+    if (flashCycle < 0.6) {
+      var promptAlpha = Math.sin(flashCycle / 0.6 * Math.PI) * 0.6 + 0.4;
+      drawPixelText(ctx, promptText, promptX, promptY, promptScale,
+        'rgba(180, 210, 140, ' + promptAlpha + ')');
+    }
+
+    // Small credits line
+    var creditScale = Math.max(1, Math.floor(promptScale * 0.7));
+    var creditText = 'a retro adventure';
+    var creditWidth = measurePixelText(creditText, creditScale);
+    var creditX = Math.floor((w - creditWidth) / 2);
+    var creditY = Math.floor(h * 0.85);
+    drawPixelText(ctx, creditText, creditX, creditY, creditScale, 'rgba(100, 140, 80, 0.5)');
+  }
+
+  /**
+   * Render the transition overlay (fading out title).
+   */
+  function renderTransitionOverlay() {
+    if (titleAlpha > 0) {
+      ctx.fillStyle = 'rgba(10, 26, 10, ' + titleAlpha + ')';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Input Handling
   // ---------------------------------------------------------------------------
 
   var keys = {};
 
   window.addEventListener('keydown', function (e) {
+    // Title screen: any key starts the game
+    if (gameState === STATE.TITLE) {
+      gameState = STATE.TRANSITION;
+      transitionTimer = 0;
+      titleAlpha = 1;
+      e.preventDefault();
+      return;
+    }
+
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].indexOf(e.key) !== -1) {
       e.preventDefault();
       keys[e.key] = true;
@@ -545,8 +857,30 @@
     // Clamp delta to avoid huge jumps (e.g. tab was backgrounded)
     if (dt > 100) dt = 16;
 
-    updatePlayer(dt);
-    render();
+    titleTime += dt;
+
+    if (gameState === STATE.TITLE) {
+      renderTitleScreen(titleTime);
+    } else if (gameState === STATE.TRANSITION) {
+      transitionTimer += dt;
+      var progress = Math.min(transitionTimer / TRANSITION_DURATION, 1);
+
+      // Render the game world underneath
+      updatePlayer(dt);
+      render();
+
+      // Fade overlay from opaque to transparent
+      titleAlpha = 1 - progress;
+      renderTransitionOverlay();
+
+      if (progress >= 1) {
+        gameState = STATE.PLAYING;
+        titleAlpha = 0;
+      }
+    } else {
+      updatePlayer(dt);
+      render();
+    }
 
     requestAnimationFrame(gameLoop);
   }
@@ -560,6 +894,9 @@
   });
 
   resize();
+
+  // Initialize title screen stars
+  titleStars = generateTitleStars(80);
 
   // Place player at a valid spawn point
   var spawn = findSpawnPosition();
