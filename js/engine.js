@@ -237,6 +237,233 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Collision Helpers
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Check if a tile is solid (cannot walk on it).
+   */
+  function isSolidTile(tileId) {
+    return tileId === TILE.WATER_1 || tileId === TILE.WATER_2 ||
+           tileId === TILE.TREE_1  || tileId === TILE.TREE_2;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Player Character
+  // ---------------------------------------------------------------------------
+
+  var DIR = { DOWN: 0, UP: 1, LEFT: 2, RIGHT: 3 };
+
+  var player = {
+    tileX: 2,             // current tile position
+    tileY: 2,
+    screenX: 2 * DRAWN_TILE,  // pixel position for smooth movement
+    screenY: 2 * DRAWN_TILE,
+    targetX: 2 * DRAWN_TILE,  // target pixel position when moving
+    targetY: 2 * DRAWN_TILE,
+    moving: false,
+    direction: DIR.DOWN,
+    walkFrame: 0,         // 0 or 1 for walk cycle
+    walkTimer: 0,         // accumulator for walk animation
+    moveSpeed: 4 * SCALE, // pixels per frame to move (smooth slide)
+  };
+
+  /**
+   * Find a valid (non-solid) spawn position for the player near the center.
+   */
+  function findSpawnPosition() {
+    var cx = Math.floor(mapCols / 2);
+    var cy = Math.floor(mapRows / 2);
+    // Spiral outward from center to find walkable tile
+    for (var r = 0; r < Math.max(mapCols, mapRows); r++) {
+      for (var dy = -r; dy <= r; dy++) {
+        for (var dx = -r; dx <= r; dx++) {
+          var tx = cx + dx;
+          var ty = cy + dy;
+          if (tx >= 0 && tx < mapCols && ty >= 0 && ty < mapRows) {
+            if (!isSolidTile(tileMap[ty][tx])) {
+              return { x: tx, y: ty };
+            }
+          }
+        }
+      }
+    }
+    return { x: 0, y: 0 };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Player Sprite Renderer (pixel art with canvas primitives)
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Draw the player character at a given screen position.
+   * A little retro adventurer with a green hat and tunic.
+   */
+  function drawPlayer(ctx, sx, sy, direction, walkFrame) {
+    var px = SCALE; // one retro pixel
+
+    // Shadow under character
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(sx + 4 * px, sy + 14 * px, 8 * px, 2 * px);
+
+    // --- Body / Tunic ---
+    ctx.fillStyle = '#4a8a3a'; // green tunic
+    ctx.fillRect(sx + 5 * px, sy + 8 * px, 6 * px, 5 * px);
+
+    // --- Skin (face/arms) ---
+    ctx.fillStyle = '#e8c89a'; // skin tone
+    // Head
+    ctx.fillRect(sx + 5 * px, sy + 4 * px, 6 * px, 4 * px);
+
+    // Arms vary with walk frame
+    if (walkFrame === 0) {
+      ctx.fillRect(sx + 3 * px, sy + 9 * px, 2 * px, 3 * px); // left arm
+      ctx.fillRect(sx + 11 * px, sy + 9 * px, 2 * px, 3 * px); // right arm
+    } else {
+      ctx.fillRect(sx + 3 * px, sy + 8 * px, 2 * px, 3 * px); // left arm up
+      ctx.fillRect(sx + 11 * px, sy + 10 * px, 2 * px, 3 * px); // right arm down
+    }
+
+    // --- Hat ---
+    ctx.fillStyle = '#2a6a1a'; // dark green hat
+    ctx.fillRect(sx + 4 * px, sy + 2 * px, 8 * px, 3 * px);
+    ctx.fillRect(sx + 5 * px, sy + 1 * px, 6 * px, 1 * px);
+
+    // Hat brim highlight
+    ctx.fillStyle = '#3a7a2a';
+    ctx.fillRect(sx + 5 * px, sy + 4 * px, 6 * px, 1 * px);
+
+    // --- Eyes ---
+    ctx.fillStyle = '#1a1a2a'; // dark eyes
+    if (direction === DIR.DOWN) {
+      ctx.fillRect(sx + 6 * px, sy + 5 * px, px, px);
+      ctx.fillRect(sx + 9 * px, sy + 5 * px, px, px);
+    } else if (direction === DIR.UP) {
+      // No eyes visible from back
+      ctx.fillStyle = '#c8a87a'; // hair color from back
+      ctx.fillRect(sx + 5 * px, sy + 4 * px, 6 * px, 2 * px);
+    } else if (direction === DIR.LEFT) {
+      ctx.fillRect(sx + 5 * px, sy + 5 * px, px, px);
+    } else if (direction === DIR.RIGHT) {
+      ctx.fillRect(sx + 10 * px, sy + 5 * px, px, px);
+    }
+
+    // --- Legs / Boots ---
+    ctx.fillStyle = '#5a4a2a'; // brown boots
+    if (walkFrame === 0) {
+      ctx.fillRect(sx + 5 * px, sy + 13 * px, 2 * px, 2 * px); // left boot
+      ctx.fillRect(sx + 9 * px, sy + 13 * px, 2 * px, 2 * px); // right boot
+    } else {
+      // Walking animation: legs apart
+      ctx.fillRect(sx + 4 * px, sy + 13 * px, 2 * px, 2 * px); // left boot forward
+      ctx.fillRect(sx + 10 * px, sy + 12 * px, 2 * px, 2 * px); // right boot back
+    }
+
+    // --- Belt ---
+    ctx.fillStyle = '#7a6a3a';
+    ctx.fillRect(sx + 5 * px, sy + 12 * px, 6 * px, px);
+
+    // Belt buckle
+    ctx.fillStyle = '#e8d44a';
+    ctx.fillRect(sx + 7 * px, sy + 12 * px, 2 * px, px);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Input Handling
+  // ---------------------------------------------------------------------------
+
+  var keys = {};
+
+  window.addEventListener('keydown', function (e) {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].indexOf(e.key) !== -1) {
+      e.preventDefault();
+      keys[e.key] = true;
+    }
+  });
+
+  window.addEventListener('keyup', function (e) {
+    keys[e.key] = false;
+  });
+
+  // ---------------------------------------------------------------------------
+  // Player Movement Logic
+  // ---------------------------------------------------------------------------
+
+  var MOVE_COOLDOWN = 140; // ms between tile moves when holding key
+  var moveCooldownTimer = 0;
+
+  /**
+   * Try to move the player in a direction. Returns true if movement started.
+   */
+  function tryMove(dx, dy, dir) {
+    player.direction = dir;
+    var newTX = player.tileX + dx;
+    var newTY = player.tileY + dy;
+
+    // Boundary check
+    if (newTX < 0 || newTX >= mapCols || newTY < 0 || newTY >= mapRows) {
+      return false;
+    }
+
+    // Collision check
+    if (isSolidTile(tileMap[newTY][newTX])) {
+      return false;
+    }
+
+    // Start movement
+    player.tileX = newTX;
+    player.tileY = newTY;
+    player.targetX = newTX * DRAWN_TILE;
+    player.targetY = newTY * DRAWN_TILE;
+    player.moving = true;
+    player.walkFrame = 1 - player.walkFrame; // toggle walk cycle
+    return true;
+  }
+
+  /**
+   * Update player state each frame.
+   */
+  function updatePlayer(dt) {
+    // If currently sliding to target, continue interpolation
+    if (player.moving) {
+      var dx = player.targetX - player.screenX;
+      var dy = player.targetY - player.screenY;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist <= player.moveSpeed) {
+        // Snap to target
+        player.screenX = player.targetX;
+        player.screenY = player.targetY;
+        player.moving = false;
+      } else {
+        // Slide toward target
+        player.screenX += (dx / dist) * player.moveSpeed;
+        player.screenY += (dy / dist) * player.moveSpeed;
+      }
+      return;
+    }
+
+    // Handle input when not currently sliding
+    moveCooldownTimer -= dt;
+    if (moveCooldownTimer > 0) return;
+
+    var moved = false;
+    if (keys['ArrowUp']) {
+      moved = tryMove(0, -1, DIR.UP);
+    } else if (keys['ArrowDown']) {
+      moved = tryMove(0, 1, DIR.DOWN);
+    } else if (keys['ArrowLeft']) {
+      moved = tryMove(-1, 0, DIR.LEFT);
+    } else if (keys['ArrowRight']) {
+      moved = tryMove(1, 0, DIR.RIGHT);
+    }
+
+    if (moved) {
+      moveCooldownTimer = MOVE_COOLDOWN;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
   // Engine Core
   // ---------------------------------------------------------------------------
 
@@ -266,10 +493,28 @@
     mapCols = Math.ceil(canvas.width / DRAWN_TILE) + 1;
     mapRows = Math.ceil(canvas.height / DRAWN_TILE) + 1;
     tileMap = generateTileMap(mapCols, mapRows);
+
+    // Re-place player if needed (ensure they stay in bounds)
+    if (player.tileX >= mapCols || player.tileY >= mapRows) {
+      var spawn = findSpawnPosition();
+      player.tileX = spawn.x;
+      player.tileY = spawn.y;
+    }
+    // Ensure player is not on a solid tile after resize
+    if (isSolidTile(tileMap[player.tileY][player.tileX])) {
+      var spawn = findSpawnPosition();
+      player.tileX = spawn.x;
+      player.tileY = spawn.y;
+    }
+    player.screenX = player.tileX * DRAWN_TILE;
+    player.screenY = player.tileY * DRAWN_TILE;
+    player.targetX = player.screenX;
+    player.targetY = player.screenY;
+    player.moving = false;
   }
 
   /**
-   * Render the full tile map to the canvas.
+   * Render the full tile map and player to the canvas.
    */
   function render() {
     // Clear
@@ -282,6 +527,28 @@
         drawTile(ctx, tileMap[y][x], x * DRAWN_TILE, y * DRAWN_TILE);
       }
     }
+
+    // Draw player on top
+    drawPlayer(ctx, player.screenX, player.screenY, player.direction, player.walkFrame);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Game Loop
+  // ---------------------------------------------------------------------------
+
+  var lastTime = 0;
+
+  function gameLoop(timestamp) {
+    var dt = timestamp - lastTime;
+    lastTime = timestamp;
+
+    // Clamp delta to avoid huge jumps (e.g. tab was backgrounded)
+    if (dt > 100) dt = 16;
+
+    updatePlayer(dt);
+    render();
+
+    requestAnimationFrame(gameLoop);
   }
 
   // ---------------------------------------------------------------------------
@@ -290,9 +557,22 @@
 
   window.addEventListener('resize', function () {
     resize();
-    render();
   });
 
   resize();
-  render();
+
+  // Place player at a valid spawn point
+  var spawn = findSpawnPosition();
+  player.tileX = spawn.x;
+  player.tileY = spawn.y;
+  player.screenX = spawn.x * DRAWN_TILE;
+  player.screenY = spawn.y * DRAWN_TILE;
+  player.targetX = player.screenX;
+  player.targetY = player.screenY;
+
+  // Start the game loop
+  requestAnimationFrame(function (timestamp) {
+    lastTime = timestamp;
+    gameLoop(timestamp);
+  });
 })();
