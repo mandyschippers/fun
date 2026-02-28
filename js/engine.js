@@ -1,0 +1,298 @@
+/**
+ * Fun - Canvas Game Engine
+ * A retro tile-based rendering engine with a greenish color palette.
+ * Top-down Zelda-like view with pixelated aesthetic.
+ */
+
+(function () {
+  'use strict';
+
+  // ---------------------------------------------------------------------------
+  // Configuration
+  // ---------------------------------------------------------------------------
+
+  var TILE_SIZE = 16;           // Base tile size in pixels
+  var SCALE = 3;                // Scale factor for retro pixel look
+  var DRAWN_TILE = TILE_SIZE * SCALE;  // Actual drawn size on screen
+
+  // Greenish color palette -- multiple shades for visual variety
+  var PALETTE = {
+    // Grass tiles (most common)
+    grass: [
+      '#2d5a1e',  // dark green
+      '#3b7a28',  // medium green
+      '#4a8c34',  // standard green
+      '#3e7230',  // muted green
+      '#356b26',  // forest green
+    ],
+    // Path / dirt tiles
+    path: [
+      '#5a6a3a',  // olive
+      '#4d5e30',  // dark olive
+    ],
+    // Flowers / decoration accents
+    flowers: [
+      '#6aaa3a',  // bright green
+      '#7bc24a',  // lime accent
+    ],
+    // Water tiles
+    water: [
+      '#1a4a3a',  // dark teal
+      '#1e5a48',  // teal
+    ],
+    // Tree / bush dark tiles
+    trees: [
+      '#1a3a12',  // very dark green
+      '#1e4416',  // dark forest
+    ],
+  };
+
+  // Tile type constants
+  var TILE = {
+    GRASS_1: 0,
+    GRASS_2: 1,
+    GRASS_3: 2,
+    GRASS_4: 3,
+    GRASS_5: 4,
+    PATH_1: 5,
+    PATH_2: 6,
+    FLOWER_1: 7,
+    FLOWER_2: 8,
+    WATER_1: 9,
+    WATER_2: 10,
+    TREE_1: 11,
+    TREE_2: 12,
+  };
+
+  // Map tile IDs to palette colors
+  var TILE_COLORS = {};
+  TILE_COLORS[TILE.GRASS_1] = PALETTE.grass[0];
+  TILE_COLORS[TILE.GRASS_2] = PALETTE.grass[1];
+  TILE_COLORS[TILE.GRASS_3] = PALETTE.grass[2];
+  TILE_COLORS[TILE.GRASS_4] = PALETTE.grass[3];
+  TILE_COLORS[TILE.GRASS_5] = PALETTE.grass[4];
+  TILE_COLORS[TILE.PATH_1] = PALETTE.path[0];
+  TILE_COLORS[TILE.PATH_2] = PALETTE.path[1];
+  TILE_COLORS[TILE.FLOWER_1] = PALETTE.flowers[0];
+  TILE_COLORS[TILE.FLOWER_2] = PALETTE.flowers[1];
+  TILE_COLORS[TILE.WATER_1] = PALETTE.water[0];
+  TILE_COLORS[TILE.WATER_2] = PALETTE.water[1];
+  TILE_COLORS[TILE.TREE_1] = PALETTE.trees[0];
+  TILE_COLORS[TILE.TREE_2] = PALETTE.trees[1];
+
+  // ---------------------------------------------------------------------------
+  // Tile Map Generation
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Seeded pseudo-random number generator for deterministic maps.
+   */
+  function seededRandom(seed) {
+    var s = seed;
+    return function () {
+      s = (s * 16807 + 0) % 2147483647;
+      return (s - 1) / 2147483646;
+    };
+  }
+
+  /**
+   * Generate a tile map that fills the viewport.
+   * Creates a natural-looking top-down world with grass, paths, water, and trees.
+   */
+  function generateTileMap(cols, rows) {
+    var rng = seededRandom(42);
+    var map = [];
+
+    for (var y = 0; y < rows; y++) {
+      var row = [];
+      for (var x = 0; x < cols; x++) {
+        var val = rng();
+        var tile;
+
+        // Base layer: mostly grass with variation
+        if (val < 0.25) {
+          tile = TILE.GRASS_1;
+        } else if (val < 0.45) {
+          tile = TILE.GRASS_2;
+        } else if (val < 0.60) {
+          tile = TILE.GRASS_3;
+        } else if (val < 0.72) {
+          tile = TILE.GRASS_4;
+        } else if (val < 0.82) {
+          tile = TILE.GRASS_5;
+        } else if (val < 0.87) {
+          tile = TILE.FLOWER_1;
+        } else if (val < 0.90) {
+          tile = TILE.FLOWER_2;
+        } else if (val < 0.94) {
+          tile = TILE.TREE_1;
+        } else if (val < 0.97) {
+          tile = TILE.TREE_2;
+        } else {
+          tile = TILE.WATER_1;
+        }
+
+        row.push(tile);
+      }
+      map.push(row);
+    }
+
+    // Carve a winding path through the map
+    var pathY = Math.floor(rows / 2);
+    for (var px = 0; px < cols; px++) {
+      map[pathY][px] = (px % 3 === 0) ? TILE.PATH_2 : TILE.PATH_1;
+      // Slight wander
+      if (rng() < 0.3 && pathY > 2) pathY--;
+      if (rng() < 0.3 && pathY < rows - 3) pathY++;
+      // Widen the path a little
+      if (pathY > 0) map[pathY - 1][px] = TILE.PATH_1;
+      if (pathY < rows - 1) map[pathY + 1][px] = TILE.PATH_1;
+    }
+
+    // Add a small pond
+    var pondX = Math.floor(cols * 0.7);
+    var pondY = Math.floor(rows * 0.3);
+    for (var py = pondY - 1; py <= pondY + 1; py++) {
+      for (var ppx = pondX - 2; ppx <= pondX + 2; ppx++) {
+        if (py >= 0 && py < rows && ppx >= 0 && ppx < cols) {
+          map[py][ppx] = (py === pondY && ppx === pondX) ? TILE.WATER_2 : TILE.WATER_1;
+        }
+      }
+    }
+
+    return map;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Tile Renderer -- draws pixel-art detail on each tile
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Draw a single tile with retro pixel-art detail.
+   */
+  function drawTile(ctx, tileId, screenX, screenY) {
+    var baseColor = TILE_COLORS[tileId] || PALETTE.grass[0];
+
+    // Fill base color
+    ctx.fillStyle = baseColor;
+    ctx.fillRect(screenX, screenY, DRAWN_TILE, DRAWN_TILE);
+
+    // Add pixel-art detail depending on tile type
+    var px = SCALE; // one "pixel" in our retro grid
+
+    if (tileId <= TILE.GRASS_5) {
+      // Grass: scatter a few darker/lighter pixels for texture
+      ctx.fillStyle = shadeColor(baseColor, -15);
+      ctx.fillRect(screenX + 3 * px, screenY + 2 * px, px, px);
+      ctx.fillRect(screenX + 7 * px, screenY + 9 * px, px, px);
+      ctx.fillRect(screenX + 12 * px, screenY + 5 * px, px, px);
+      ctx.fillStyle = shadeColor(baseColor, 15);
+      ctx.fillRect(screenX + 5 * px, screenY + 11 * px, px, px);
+      ctx.fillRect(screenX + 10 * px, screenY + 3 * px, px, px);
+    } else if (tileId === TILE.PATH_1 || tileId === TILE.PATH_2) {
+      // Path: pebble texture
+      ctx.fillStyle = shadeColor(baseColor, 10);
+      ctx.fillRect(screenX + 4 * px, screenY + 4 * px, 2 * px, px);
+      ctx.fillRect(screenX + 10 * px, screenY + 8 * px, 2 * px, px);
+      ctx.fillStyle = shadeColor(baseColor, -10);
+      ctx.fillRect(screenX + 7 * px, screenY + 12 * px, px, px);
+    } else if (tileId === TILE.FLOWER_1 || tileId === TILE.FLOWER_2) {
+      // Flower on grass
+      ctx.fillStyle = '#e8d44a'; // yellow petal
+      ctx.fillRect(screenX + 7 * px, screenY + 6 * px, 2 * px, 2 * px);
+      ctx.fillStyle = '#d45a2a'; // red center
+      ctx.fillRect(screenX + 7 * px, screenY + 7 * px, px, px);
+    } else if (tileId === TILE.WATER_1 || tileId === TILE.WATER_2) {
+      // Water: wave highlights
+      ctx.fillStyle = shadeColor(baseColor, 20);
+      ctx.fillRect(screenX + 2 * px, screenY + 5 * px, 3 * px, px);
+      ctx.fillRect(screenX + 8 * px, screenY + 10 * px, 4 * px, px);
+      ctx.fillStyle = shadeColor(baseColor, -10);
+      ctx.fillRect(screenX + 5 * px, screenY + 3 * px, 2 * px, px);
+    } else if (tileId === TILE.TREE_1 || tileId === TILE.TREE_2) {
+      // Tree: trunk + canopy
+      ctx.fillStyle = '#3a2a1a'; // brown trunk
+      ctx.fillRect(screenX + 7 * px, screenY + 10 * px, 2 * px, 5 * px);
+      ctx.fillStyle = '#1a5a12'; // canopy
+      ctx.fillRect(screenX + 4 * px, screenY + 3 * px, 8 * px, 8 * px);
+      ctx.fillStyle = shadeColor(baseColor, 15);
+      ctx.fillRect(screenX + 5 * px, screenY + 4 * px, 3 * px, 3 * px);
+    }
+
+    // Subtle grid line for tile borders (very faint)
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+    ctx.fillRect(screenX + DRAWN_TILE - 1, screenY, 1, DRAWN_TILE);
+    ctx.fillRect(screenX, screenY + DRAWN_TILE - 1, DRAWN_TILE, 1);
+  }
+
+  /**
+   * Lighten or darken a hex color by a percentage amount.
+   */
+  function shadeColor(color, percent) {
+    var num = parseInt(color.replace('#', ''), 16);
+    var r = Math.min(255, Math.max(0, (num >> 16) + percent));
+    var g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + percent));
+    var b = Math.min(255, Math.max(0, (num & 0x0000FF) + percent));
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Engine Core
+  // ---------------------------------------------------------------------------
+
+  var canvas = document.getElementById('gameCanvas');
+  var ctx = canvas.getContext('2d');
+
+  // Disable anti-aliasing for crisp pixel art
+  function disableSmoothing() {
+    ctx.imageSmoothingEnabled = false;
+    ctx.mozImageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.msImageSmoothingEnabled = false;
+  }
+
+  /**
+   * Resize canvas to fill the viewport and regenerate the map.
+   */
+  var tileMap = [];
+  var mapCols = 0;
+  var mapRows = 0;
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    disableSmoothing();
+
+    mapCols = Math.ceil(canvas.width / DRAWN_TILE) + 1;
+    mapRows = Math.ceil(canvas.height / DRAWN_TILE) + 1;
+    tileMap = generateTileMap(mapCols, mapRows);
+  }
+
+  /**
+   * Render the full tile map to the canvas.
+   */
+  function render() {
+    // Clear
+    ctx.fillStyle = '#0a1a0a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw tiles
+    for (var y = 0; y < mapRows; y++) {
+      for (var x = 0; x < mapCols; x++) {
+        drawTile(ctx, tileMap[y][x], x * DRAWN_TILE, y * DRAWN_TILE);
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Boot
+  // ---------------------------------------------------------------------------
+
+  window.addEventListener('resize', function () {
+    resize();
+    render();
+  });
+
+  resize();
+  render();
+})();
