@@ -45,6 +45,25 @@
       '#1a3a12',  // very dark green
       '#1e4416',  // dark forest
     ],
+    // Fantasy themed tiles
+    castle: [
+      '#4a4a50',  // stone gray
+      '#3a3a42',  // dark stone
+      '#5a5a62',  // light stone
+    ],
+    ruins: [
+      '#5a5a4a',  // weathered stone
+      '#4a4a3a',  // mossy ruins
+    ],
+    // Sci-fi themed tiles
+    techPanel: [
+      '#2a2a3a',  // dark metal
+      '#3a3a4a',  // medium metal
+    ],
+    energyTile: [
+      '#1a2a4a',  // deep blue energy
+      '#2a1a3a',  // deep purple energy
+    ],
   };
 
   // Tile type constants
@@ -62,6 +81,17 @@
     WATER_2: 10,
     TREE_1: 11,
     TREE_2: 12,
+    // Fantasy themed tiles
+    CASTLE_WALL: 13,
+    CASTLE_FLOOR: 14,
+    RUINS_1: 15,
+    RUINS_2: 16,
+    // Sci-fi themed tiles
+    TECH_PANEL_1: 17,
+    TECH_PANEL_2: 18,
+    ENERGY_BLUE: 19,
+    ENERGY_PURPLE: 20,
+    METAL_FLOOR: 21,
   };
 
   // Map tile IDs to palette colors
@@ -79,6 +109,17 @@
   TILE_COLORS[TILE.WATER_2] = PALETTE.water[1];
   TILE_COLORS[TILE.TREE_1] = PALETTE.trees[0];
   TILE_COLORS[TILE.TREE_2] = PALETTE.trees[1];
+  // Fantasy themed
+  TILE_COLORS[TILE.CASTLE_WALL] = PALETTE.castle[0];
+  TILE_COLORS[TILE.CASTLE_FLOOR] = PALETTE.castle[2];
+  TILE_COLORS[TILE.RUINS_1] = PALETTE.ruins[0];
+  TILE_COLORS[TILE.RUINS_2] = PALETTE.ruins[1];
+  // Sci-fi themed
+  TILE_COLORS[TILE.TECH_PANEL_1] = PALETTE.techPanel[0];
+  TILE_COLORS[TILE.TECH_PANEL_2] = PALETTE.techPanel[1];
+  TILE_COLORS[TILE.ENERGY_BLUE] = PALETTE.energyTile[0];
+  TILE_COLORS[TILE.ENERGY_PURPLE] = PALETTE.energyTile[1];
+  TILE_COLORS[TILE.METAL_FLOOR] = '#3a3a3a';
 
   // ---------------------------------------------------------------------------
   // Tile Map Generation
@@ -160,6 +201,72 @@
       }
     }
 
+    // --- Fantasy Zone: Castle ruins (upper-left quadrant) ---
+    var castleX = Math.floor(cols * 0.15);
+    var castleY = Math.floor(rows * 0.2);
+    var castleW = Math.min(7, cols - castleX - 1);
+    var castleH = Math.min(6, rows - castleY - 1);
+    if (castleX > 0 && castleY > 0) {
+      // Lay castle floor
+      for (var cy = castleY; cy < castleY + castleH && cy < rows; cy++) {
+        for (var cx = castleX; cx < castleX + castleW && cx < cols; cx++) {
+          map[cy][cx] = TILE.CASTLE_FLOOR;
+        }
+      }
+      // Castle walls (borders of the rectangle, with a gap for doorway)
+      for (var cx = castleX; cx < castleX + castleW && cx < cols; cx++) {
+        if (castleY >= 0 && castleY < rows) map[castleY][cx] = TILE.CASTLE_WALL;
+        var bottomY = castleY + castleH - 1;
+        if (bottomY >= 0 && bottomY < rows) {
+          // Leave a gap in bottom wall for doorway
+          if (cx !== castleX + Math.floor(castleW / 2)) {
+            map[bottomY][cx] = TILE.CASTLE_WALL;
+          }
+        }
+      }
+      for (var cy = castleY; cy < castleY + castleH && cy < rows; cy++) {
+        if (castleX >= 0 && castleX < cols) map[cy][castleX] = TILE.CASTLE_WALL;
+        var rightX = castleX + castleW - 1;
+        if (rightX >= 0 && rightX < cols) map[cy][rightX] = TILE.CASTLE_WALL;
+      }
+      // Scatter some ruins around the castle
+      for (var ri = 0; ri < 5; ri++) {
+        var rx = castleX - 2 + Math.floor(rng() * (castleW + 4));
+        var ry = castleY - 2 + Math.floor(rng() * (castleH + 4));
+        if (rx >= 0 && rx < cols && ry >= 0 && ry < rows && map[ry][rx] !== TILE.CASTLE_WALL && map[ry][rx] !== TILE.CASTLE_FLOOR) {
+          map[ry][rx] = rng() < 0.5 ? TILE.RUINS_1 : TILE.RUINS_2;
+        }
+      }
+    }
+
+    // --- Sci-Fi Zone: Tech area (lower-right quadrant) ---
+    var techX = Math.floor(cols * 0.65);
+    var techY = Math.floor(rows * 0.6);
+    var techW = Math.min(8, cols - techX - 1);
+    var techH = Math.min(5, rows - techY - 1);
+    if (techX > 0 && techY > 0 && techX + techW <= cols && techY + techH <= rows) {
+      // Metal floor base
+      for (var ty = techY; ty < techY + techH && ty < rows; ty++) {
+        for (var tx = techX; tx < techX + techW && tx < cols; tx++) {
+          map[ty][tx] = TILE.METAL_FLOOR;
+        }
+      }
+      // Tech panels along edges
+      for (var tx = techX; tx < techX + techW && tx < cols; tx++) {
+        if (techY >= 0 && techY < rows) map[techY][tx] = rng() < 0.5 ? TILE.TECH_PANEL_1 : TILE.TECH_PANEL_2;
+        var btmY = techY + techH - 1;
+        if (btmY >= 0 && btmY < rows) map[btmY][tx] = rng() < 0.5 ? TILE.TECH_PANEL_1 : TILE.TECH_PANEL_2;
+      }
+      // Energy tiles in center
+      var eCenterX = techX + Math.floor(techW / 2);
+      var eCenterY = techY + Math.floor(techH / 2);
+      if (eCenterY >= 0 && eCenterY < rows && eCenterX >= 0 && eCenterX < cols) {
+        map[eCenterY][eCenterX] = TILE.ENERGY_BLUE;
+        if (eCenterX - 1 >= 0) map[eCenterY][eCenterX - 1] = TILE.ENERGY_PURPLE;
+        if (eCenterX + 1 < cols) map[eCenterY][eCenterX + 1] = TILE.ENERGY_PURPLE;
+      }
+    }
+
     return map;
   }
 
@@ -217,6 +324,66 @@
       ctx.fillRect(screenX + 4 * px, screenY + 3 * px, 8 * px, 8 * px);
       ctx.fillStyle = shadeColor(baseColor, 15);
       ctx.fillRect(screenX + 5 * px, screenY + 4 * px, 3 * px, 3 * px);
+    } else if (tileId === TILE.CASTLE_WALL) {
+      // Castle wall: stone brick pattern
+      ctx.fillStyle = shadeColor(baseColor, 10);
+      ctx.fillRect(screenX, screenY, 7 * px, 7 * px);
+      ctx.fillRect(screenX + 8 * px, screenY, 8 * px, 7 * px);
+      ctx.fillRect(screenX + 3 * px, screenY + 8 * px, 10 * px, 7 * px);
+      // Mortar lines
+      ctx.fillStyle = shadeColor(baseColor, -15);
+      ctx.fillRect(screenX + 7 * px, screenY, px, 7 * px);
+      ctx.fillRect(screenX, screenY + 7 * px, 16 * px, px);
+      ctx.fillRect(screenX + 3 * px, screenY + 8 * px, px, 7 * px);
+      ctx.fillRect(screenX + 13 * px, screenY + 8 * px, px, 7 * px);
+    } else if (tileId === TILE.CASTLE_FLOOR) {
+      // Castle floor: smooth stone with subtle cracks
+      ctx.fillStyle = shadeColor(baseColor, -8);
+      ctx.fillRect(screenX + 3 * px, screenY + 4 * px, 6 * px, px);
+      ctx.fillRect(screenX + 9 * px, screenY + 10 * px, 4 * px, px);
+      ctx.fillStyle = shadeColor(baseColor, 8);
+      ctx.fillRect(screenX + 6 * px, screenY + 8 * px, px, px);
+    } else if (tileId === TILE.RUINS_1 || tileId === TILE.RUINS_2) {
+      // Ruins: broken stone blocks with moss
+      ctx.fillStyle = shadeColor(baseColor, 12);
+      ctx.fillRect(screenX + 2 * px, screenY + 4 * px, 5 * px, 4 * px);
+      ctx.fillRect(screenX + 9 * px, screenY + 8 * px, 4 * px, 3 * px);
+      ctx.fillStyle = '#3a6a2a'; // moss accent
+      ctx.fillRect(screenX + 2 * px, screenY + 7 * px, 3 * px, px);
+      ctx.fillRect(screenX + 10 * px, screenY + 11 * px, 2 * px, px);
+    } else if (tileId === TILE.TECH_PANEL_1 || tileId === TILE.TECH_PANEL_2) {
+      // Tech panel: metal plate with rivets and glowing indicator
+      ctx.fillStyle = shadeColor(baseColor, 8);
+      ctx.fillRect(screenX + px, screenY + px, 14 * px, 14 * px);
+      // Rivets
+      ctx.fillStyle = shadeColor(baseColor, 20);
+      ctx.fillRect(screenX + 2 * px, screenY + 2 * px, px, px);
+      ctx.fillRect(screenX + 13 * px, screenY + 2 * px, px, px);
+      ctx.fillRect(screenX + 2 * px, screenY + 13 * px, px, px);
+      ctx.fillRect(screenX + 13 * px, screenY + 13 * px, px, px);
+      // Glowing indicator strip
+      ctx.fillStyle = tileId === TILE.TECH_PANEL_1 ? '#4a8aff' : '#ff8a4a';
+      ctx.fillRect(screenX + 5 * px, screenY + 7 * px, 6 * px, 2 * px);
+    } else if (tileId === TILE.ENERGY_BLUE || tileId === TILE.ENERGY_PURPLE) {
+      // Energy tile: glowing energy grid
+      var eColor = tileId === TILE.ENERGY_BLUE ? '#3a7aff' : '#8a3aff';
+      ctx.fillStyle = eColor;
+      ctx.fillRect(screenX + 2 * px, screenY + 2 * px, 12 * px, 12 * px);
+      // Inner glow
+      var eLight = tileId === TILE.ENERGY_BLUE ? '#6abaff' : '#ba6aff';
+      ctx.fillStyle = eLight;
+      ctx.fillRect(screenX + 4 * px, screenY + 4 * px, 8 * px, 8 * px);
+      // Grid lines
+      ctx.fillStyle = shadeColor(baseColor, -10);
+      ctx.fillRect(screenX + 7 * px, screenY + 2 * px, px, 12 * px);
+      ctx.fillRect(screenX + 2 * px, screenY + 7 * px, 12 * px, px);
+    } else if (tileId === TILE.METAL_FLOOR) {
+      // Metal floor: industrial plate with subtle diamond pattern
+      ctx.fillStyle = shadeColor(baseColor, 6);
+      ctx.fillRect(screenX + 4 * px, screenY + 4 * px, 2 * px, 2 * px);
+      ctx.fillRect(screenX + 10 * px, screenY + 10 * px, 2 * px, 2 * px);
+      ctx.fillStyle = shadeColor(baseColor, -6);
+      ctx.fillRect(screenX + 7 * px, screenY + 7 * px, px, px);
     }
 
     // Subtle grid line for tile borders (very faint)
@@ -245,7 +412,9 @@
    */
   function isSolidTile(tileId) {
     return tileId === TILE.WATER_1 || tileId === TILE.WATER_2 ||
-           tileId === TILE.TREE_1  || tileId === TILE.TREE_2;
+           tileId === TILE.TREE_1  || tileId === TILE.TREE_2 ||
+           tileId === TILE.CASTLE_WALL ||
+           tileId === TILE.TECH_PANEL_1 || tileId === TILE.TECH_PANEL_2;
   }
 
   // ---------------------------------------------------------------------------
@@ -278,6 +447,36 @@
       name: 'sword',
       message: 'A legendary sword embedded in stone. You are not yet worthy.',
       color: '#b0b0c0',
+    },
+    CRASHED_SHIP: {
+      name: 'crashed_ship',
+      message: 'A crashed starship! Its hull still hums with residual power.',
+      color: '#6a7a8a',
+    },
+    CRYSTAL: {
+      name: 'crystal',
+      message: 'Arcane crystals pulse with ancient magical energy.',
+      color: '#8a4ae8',
+    },
+    TERMINAL: {
+      name: 'terminal',
+      message: 'A computer terminal. The screen flickers: SYSTEM ONLINE...',
+      color: '#3ae860',
+    },
+    PORTAL: {
+      name: 'portal',
+      message: 'A shimmering portal between dimensions. Where does it lead?',
+      color: '#4ac8ff',
+    },
+    CAMPFIRE: {
+      name: 'campfire',
+      message: 'A warm campfire crackles. Someone was here recently.',
+      color: '#e8a43a',
+    },
+    TELESCOPE: {
+      name: 'telescope',
+      message: 'A brass telescope pointed at the stars. Ancient and futuristic at once.',
+      color: '#c0a040',
     },
   };
 
@@ -375,9 +574,13 @@
     }
 
     // Place objects ensuring minimum spacing
-    var typeList = [OBJ_TYPES.CHEST, OBJ_TYPES.SIGN, OBJ_TYPES.ORB, OBJ_TYPES.SWORD];
+    var typeList = [
+      OBJ_TYPES.CHEST, OBJ_TYPES.SIGN, OBJ_TYPES.ORB, OBJ_TYPES.SWORD,
+      OBJ_TYPES.CRASHED_SHIP, OBJ_TYPES.CRYSTAL, OBJ_TYPES.TERMINAL,
+      OBJ_TYPES.PORTAL, OBJ_TYPES.CAMPFIRE, OBJ_TYPES.TELESCOPE
+    ];
     var placed = 0;
-    var minSpacing = 4;
+    var minSpacing = 3;
 
     for (var w = 0; w < walkable.length && placed < typeList.length; w++) {
       var candidate = walkable[w];
@@ -556,6 +759,216 @@
   }
 
   /**
+   * Draw a crashed spaceship sprite.
+   */
+  function drawCrashedShip(ctx, sx, sy, animOffset, time) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+    var flicker = Math.sin((time || 0) * 0.008) * 0.3 + 0.7;
+
+    // Ship hull (main body)
+    ctx.fillStyle = '#5a6a7a';
+    ctx.fillRect(sx + 2 * px, sy + 7 * px + ay, 12 * px, 5 * px);
+    // Cockpit dome
+    ctx.fillStyle = '#4a5a6a';
+    ctx.fillRect(sx + 4 * px, sy + 4 * px + ay, 8 * px, 4 * px);
+    ctx.fillStyle = '#3a4a5a';
+    ctx.fillRect(sx + 5 * px, sy + 3 * px + ay, 6 * px, 2 * px);
+    // Windshield (teal glow)
+    ctx.fillStyle = 'rgba(74, 200, 220, ' + flicker + ')';
+    ctx.fillRect(sx + 6 * px, sy + 5 * px + ay, 4 * px, 2 * px);
+    // Wing stubs (damaged/tilted)
+    ctx.fillStyle = '#4a5a6a';
+    ctx.fillRect(sx + px, sy + 9 * px + ay, 2 * px, 2 * px);
+    ctx.fillRect(sx + 13 * px, sy + 8 * px + ay, 2 * px, 3 * px);
+    // Engine glow (orange, flickering)
+    ctx.fillStyle = 'rgba(255, 140, 40, ' + (flicker * 0.6) + ')';
+    ctx.fillRect(sx + 5 * px, sy + 11 * px + ay, 2 * px, 2 * px);
+    ctx.fillRect(sx + 9 * px, sy + 11 * px + ay, 2 * px, 2 * px);
+    // Damage marks
+    ctx.fillStyle = '#3a3a3a';
+    ctx.fillRect(sx + 3 * px, sy + 8 * px + ay, px, 2 * px);
+    ctx.fillRect(sx + 10 * px, sy + 7 * px + ay, px, px);
+    // Sparks
+    ctx.fillStyle = 'rgba(255, 220, 80, ' + (flicker * 0.8) + ')';
+    ctx.fillRect(sx + 11 * px, sy + 6 * px + ay, px, px);
+  }
+
+  /**
+   * Draw crystal formation sprite.
+   */
+  function drawCrystal(ctx, sx, sy, animOffset, time) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+    var glow = Math.sin((time || 0) * 0.005) * 0.25 + 0.75;
+
+    // Base rock
+    ctx.fillStyle = '#4a4a50';
+    ctx.fillRect(sx + 3 * px, sy + 12 * px, 10 * px, 3 * px);
+
+    // Large crystal (center, purple)
+    ctx.fillStyle = 'rgba(138, 74, 232, ' + glow + ')';
+    ctx.fillRect(sx + 6 * px, sy + 3 * px + ay, 4 * px, 10 * px);
+    ctx.fillRect(sx + 7 * px, sy + 2 * px + ay, 2 * px, px);
+    // Crystal highlight
+    ctx.fillStyle = 'rgba(180, 140, 255, ' + (glow * 0.7) + ')';
+    ctx.fillRect(sx + 7 * px, sy + 4 * px + ay, px, 5 * px);
+
+    // Small crystal (left, blue)
+    ctx.fillStyle = 'rgba(74, 140, 232, ' + glow + ')';
+    ctx.fillRect(sx + 3 * px, sy + 7 * px + ay, 3 * px, 6 * px);
+    ctx.fillRect(sx + 4 * px, sy + 6 * px + ay, px, px);
+
+    // Small crystal (right, pink)
+    ctx.fillStyle = 'rgba(200, 80, 180, ' + glow + ')';
+    ctx.fillRect(sx + 11 * px, sy + 8 * px + ay, 2 * px, 5 * px);
+    ctx.fillRect(sx + 11 * px, sy + 7 * px + ay, px, px);
+  }
+
+  /**
+   * Draw computer terminal sprite.
+   */
+  function drawTerminal(ctx, sx, sy, animOffset, time) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+    var blink = Math.sin((time || 0) * 0.006) > 0 ? 1 : 0.5;
+
+    // Terminal base/stand
+    ctx.fillStyle = '#3a3a4a';
+    ctx.fillRect(sx + 4 * px, sy + 12 * px + ay, 8 * px, 3 * px);
+    ctx.fillRect(sx + 6 * px, sy + 10 * px + ay, 4 * px, 2 * px);
+    // Screen housing
+    ctx.fillStyle = '#2a2a3a';
+    ctx.fillRect(sx + 3 * px, sy + 3 * px + ay, 10 * px, 8 * px);
+    // Screen (green phosphor glow)
+    ctx.fillStyle = 'rgba(58, 232, 96, ' + (0.7 * blink) + ')';
+    ctx.fillRect(sx + 4 * px, sy + 4 * px + ay, 8 * px, 6 * px);
+    // Text lines on screen
+    ctx.fillStyle = 'rgba(100, 255, 140, ' + blink + ')';
+    ctx.fillRect(sx + 5 * px, sy + 5 * px + ay, 5 * px, px);
+    ctx.fillRect(sx + 5 * px, sy + 7 * px + ay, 6 * px, px);
+    ctx.fillRect(sx + 5 * px, sy + 9 * px + ay, 3 * px, px);
+    // Blinking cursor
+    ctx.fillStyle = 'rgba(150, 255, 180, ' + blink + ')';
+    ctx.fillRect(sx + 9 * px, sy + 9 * px + ay, px, px);
+    // Status LED
+    ctx.fillStyle = 'rgba(255, 80, 40, ' + blink + ')';
+    ctx.fillRect(sx + 11 * px, sy + 3 * px + ay, px, px);
+  }
+
+  /**
+   * Draw portal/warp pad sprite.
+   */
+  function drawPortal(ctx, sx, sy, animOffset, time) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+    var spin = ((time || 0) * 0.003) % (Math.PI * 2);
+    var pulse = Math.sin(spin) * 0.3 + 0.7;
+    var pulse2 = Math.sin(spin + 2) * 0.3 + 0.7;
+
+    // Pad base
+    ctx.fillStyle = '#3a3a5a';
+    ctx.fillRect(sx + 2 * px, sy + 12 * px, 12 * px, 3 * px);
+    ctx.fillStyle = '#2a2a4a';
+    ctx.fillRect(sx + 3 * px, sy + 11 * px, 10 * px, 2 * px);
+
+    // Portal energy ring (outer)
+    ctx.fillStyle = 'rgba(74, 200, 255, ' + (0.5 * pulse) + ')';
+    ctx.fillRect(sx + 3 * px, sy + 3 * px + ay, 10 * px, 9 * px);
+    // Inner void
+    ctx.fillStyle = 'rgba(20, 10, 50, 0.9)';
+    ctx.fillRect(sx + 5 * px, sy + 5 * px + ay, 6 * px, 5 * px);
+    // Swirling energy
+    ctx.fillStyle = 'rgba(100, 180, 255, ' + (0.6 * pulse2) + ')';
+    ctx.fillRect(sx + 6 * px, sy + 6 * px + ay, 2 * px, px);
+    ctx.fillRect(sx + 8 * px, sy + 8 * px + ay, 2 * px, px);
+    ctx.fillStyle = 'rgba(180, 100, 255, ' + (0.5 * pulse) + ')';
+    ctx.fillRect(sx + 7 * px, sy + 7 * px + ay, 2 * px, 2 * px);
+    // Sparks around portal
+    ctx.fillStyle = 'rgba(200, 240, 255, ' + (0.7 * pulse2) + ')';
+    ctx.fillRect(sx + 4 * px, sy + 4 * px + ay, px, px);
+    ctx.fillRect(sx + 11 * px, sy + 6 * px + ay, px, px);
+    ctx.fillRect(sx + 5 * px, sy + 10 * px + ay, px, px);
+  }
+
+  /**
+   * Draw campfire sprite.
+   */
+  function drawCampfire(ctx, sx, sy, animOffset, time) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+    var flamePhase = Math.sin((time || 0) * 0.01) * 0.3 + 0.7;
+    var flamePhase2 = Math.sin((time || 0) * 0.013 + 1) * 0.3 + 0.7;
+
+    // Stone ring
+    ctx.fillStyle = '#5a5a5a';
+    ctx.fillRect(sx + 3 * px, sy + 11 * px, 10 * px, 3 * px);
+    ctx.fillRect(sx + 2 * px, sy + 12 * px, 12 * px, 2 * px);
+    // Logs
+    ctx.fillStyle = '#5a3a1a';
+    ctx.fillRect(sx + 4 * px, sy + 10 * px + ay, 8 * px, 2 * px);
+    ctx.fillStyle = '#4a2a10';
+    ctx.fillRect(sx + 5 * px, sy + 9 * px + ay, 6 * px, 2 * px);
+    // Fire base (orange)
+    ctx.fillStyle = 'rgba(232, 140, 40, ' + flamePhase + ')';
+    ctx.fillRect(sx + 6 * px, sy + 6 * px + ay, 4 * px, 4 * px);
+    // Fire mid (yellow)
+    ctx.fillStyle = 'rgba(255, 200, 40, ' + flamePhase2 + ')';
+    ctx.fillRect(sx + 7 * px, sy + 4 * px + ay, 2 * px, 4 * px);
+    // Fire tip (bright)
+    ctx.fillStyle = 'rgba(255, 240, 120, ' + flamePhase + ')';
+    ctx.fillRect(sx + 7 * px, sy + 3 * px + ay, 2 * px, 2 * px);
+    // Sparks
+    ctx.fillStyle = 'rgba(255, 180, 60, ' + (flamePhase2 * 0.6) + ')';
+    ctx.fillRect(sx + 5 * px, sy + 5 * px + ay, px, px);
+    ctx.fillRect(sx + 10 * px, sy + 4 * px + ay, px, px);
+    // Embers
+    ctx.fillStyle = 'rgba(255, 100, 30, ' + flamePhase + ')';
+    ctx.fillRect(sx + 9 * px, sy + 2 * px + ay, px, px);
+  }
+
+  /**
+   * Draw telescope sprite.
+   */
+  function drawTelescope(ctx, sx, sy, animOffset, time) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+    var glint = Math.sin((time || 0) * 0.004) * 0.3 + 0.7;
+
+    // Tripod legs
+    ctx.fillStyle = '#6a5a3a';
+    ctx.fillRect(sx + 4 * px, sy + 10 * px, px, 5 * px);
+    ctx.fillRect(sx + 11 * px, sy + 10 * px, px, 5 * px);
+    ctx.fillRect(sx + 7 * px, sy + 12 * px, 2 * px, 3 * px);
+    // Tripod center joint
+    ctx.fillStyle = '#8a7a50';
+    ctx.fillRect(sx + 6 * px, sy + 10 * px, 4 * px, 2 * px);
+    // Telescope tube (angled)
+    ctx.fillStyle = '#c0a040';
+    ctx.fillRect(sx + 4 * px, sy + 5 * px + ay, 8 * px, 3 * px);
+    ctx.fillRect(sx + 3 * px, sy + 4 * px + ay, 3 * px, 2 * px);
+    // Brass highlight
+    ctx.fillStyle = 'rgba(220, 180, 80, ' + glint + ')';
+    ctx.fillRect(sx + 5 * px, sy + 5 * px + ay, 6 * px, px);
+    // Lens (glass with blue tint)
+    ctx.fillStyle = 'rgba(100, 180, 240, ' + glint + ')';
+    ctx.fillRect(sx + 3 * px, sy + 4 * px + ay, px, 2 * px);
+    // Eyepiece
+    ctx.fillStyle = '#8a6a30';
+    ctx.fillRect(sx + 12 * px, sy + 5 * px + ay, 2 * px, 2 * px);
+    // Satellite dish addon (sci-fi juxtaposition!)
+    ctx.fillStyle = '#7a8a9a';
+    ctx.fillRect(sx + 9 * px, sy + 2 * px + ay, 4 * px, 2 * px);
+    ctx.fillRect(sx + 10 * px, sy + 1 * px + ay, 2 * px, px);
+    // Antenna
+    ctx.fillStyle = '#aabaca';
+    ctx.fillRect(sx + 11 * px, sy + px + ay, px, px);
+    // Blinking light on dish
+    ctx.fillStyle = 'rgba(255, 60, 40, ' + glint + ')';
+    ctx.fillRect(sx + 11 * px, sy + 2 * px + ay, px, px);
+  }
+
+  /**
    * Draw a world object at its tile position.
    */
   function drawWorldObject(ctx, obj, time) {
@@ -576,6 +989,18 @@
       drawOrb(ctx, sx, sy, animOffset, time);
     } else if (obj.type === OBJ_TYPES.SWORD) {
       drawSwordInStone(ctx, sx, sy, animOffset, time);
+    } else if (obj.type === OBJ_TYPES.CRASHED_SHIP) {
+      drawCrashedShip(ctx, sx, sy, animOffset, time);
+    } else if (obj.type === OBJ_TYPES.CRYSTAL) {
+      drawCrystal(ctx, sx, sy, animOffset, time);
+    } else if (obj.type === OBJ_TYPES.TERMINAL) {
+      drawTerminal(ctx, sx, sy, animOffset, time);
+    } else if (obj.type === OBJ_TYPES.PORTAL) {
+      drawPortal(ctx, sx, sy, animOffset, time);
+    } else if (obj.type === OBJ_TYPES.CAMPFIRE) {
+      drawCampfire(ctx, sx, sy, animOffset, time);
+    } else if (obj.type === OBJ_TYPES.TELESCOPE) {
+      drawTelescope(ctx, sx, sy, animOffset, time);
     }
   }
 
@@ -931,6 +1356,7 @@
     '-': [0x08,0x08,0x08,0x08,0x08],
     ':': [0x00,0x36,0x36,0x00,0x00],
     ',': [0x00,0x80,0x60,0x00,0x00],
+    '\'': [0x00,0x03,0x03,0x00,0x00],
   };
 
   /**
