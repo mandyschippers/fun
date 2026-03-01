@@ -897,6 +897,169 @@
         'Advertising has truly reached the point of no return. But you do feel oddly parched.'
       ],
     ],
+    // --- NPC Dialogue ---
+    npc_wizard: [
+      [
+        '"Ah, greetings! I am Aldric the Arcane... Software Architect."',
+        '"I used to cast fireballs, but the company pivoted to microservices. Same thing, really. Everything catches fire."',
+        '"My current sprint involves transmuting lead into a viable go-to-market strategy. The standup is at nine."'
+      ],
+      [
+        '"Do not interrupt me. I am refactoring a very delicate incantation."',
+        '"You see, the legacy spellbook has no documentation. The original wizard died. Typical."',
+        '"I have raised a ticket with the Arcane Council. They said they would get back to me in three to five business centuries."'
+      ],
+      [
+        '"You want magic? I will give you magic. Observe."',
+        '"DEPLOYICUS PRODUCTIONUS!" ...Nothing happens. The staging environment is down again.',
+        '"In my defence, the last wizard who pushed to prod on a Friday was turned into a newt. At least that worked."'
+      ],
+      [
+        '"My LinkedIn says Wizard. My actual job is mostly attending meetings about other meetings."',
+        '"Yesterday I had a sync about a sync. The day before, a retrospective about retrospectives."',
+        '"The real dark arts are not necromancy. They are calendar management."'
+      ],
+      [
+        '"Fun fact: the Balrog in Moria was actually caused by a merge conflict."',
+        '"Gandalf tried to resolve it manually. You shall not pass code review, and all that."',
+        '"Honestly, the whole Fellowship was just a particularly aggressive agile team. Aragorn was the scrum master."'
+      ],
+    ],
+    npc_knight: [
+      [
+        '"Halt! I am Sir Reginald of the Health and Safety Executive."',
+        '"Before you proceed, I shall need you to complete a risk assessment for this quest."',
+        '"Form 27B stroke 6. In triplicate. And I shall need to see your adventuring licence."'
+      ],
+      [
+        '"That sword you are carrying. Is it OSHA compliant?"',
+        '"I see no blade guard. No safety lanyard. Not even a high-visibility scabbard."',
+        '"I am writing you up. Also, when was your last tetanus jab? Dragon bites are filthy."'
+      ],
+      [
+        '"I used to slay dragons. Then health and safety got involved."',
+        '"Apparently breathing fire creates an unacceptable thermal hazard in the workplace."',
+        '"Now I just hand them a strongly-worded notice about fire exits. It is surprisingly effective."'
+      ],
+      [
+        '"My armour has seventeen separate certifications. EN 166 for visor impact resistance alone."',
+        '"The chainmail is BS EN 381 compliant. I had to fill in forty forms."',
+        '"Is it comfortable? Absolutely not. But I could survive an audit, and that is what truly matters."'
+      ],
+      [
+        '"Have you seen the state of that dungeon? Slippery floors, poor lighting, no emergency exits."',
+        '"The skeleton army filed a workplace grievance. They want ergonomic shields."',
+        '"I told the Dark Lord he needs a health and safety officer. He said he already has one. It is me. I switched sides. Better benefits."'
+      ],
+    ],
+    npc_elf: [
+      [
+        '"Welcome to LeafNode, the premier elvish tech startup!"',
+        '"We are disrupting the enchanted forest vertical with our proprietary mana-as-a-service platform."',
+        '"Our Series A was three chests of mithril. Our burn rate is... well, we set a forest on fire. So."'
+      ],
+      [
+        '"Our app is like Uber, but for quests. QuestR. We are pre-revenue but post-vibes."',
+        '"The elders say I have forsaken the ancient ways. I say the ancient ways did not have push notifications."',
+        '"Legolas is an angel investor. Not that kind of angel. The venture capital kind. He put in fifty gold pieces."'
+      ],
+      [
+        '"We just pivoted. Again. Third time this moon cycle."',
+        '"First we were a potion delivery service. Then an NFT marketplace for enchanted rings. Terrible idea, that one."',
+        '"Now we are building AI. Arcane Intelligence. It just predicts the weather, but we call it a prophecy engine."'
+      ],
+      [
+        '"I have lived for three thousand years, and nothing has caused me more stress than a pitch deck."',
+        '"Elrond said my business plan was, and I quote, the most grievous thing he had witnessed since Isildur."',
+        '"He invested anyway. Immortals are terrible with money. What is compound interest to someone who lives forever?"'
+      ],
+      [
+        '"Move fast and break things, that is our motto. Very Silicon Valley."',
+        '"Unfortunately, in an enchanted forest, breaking things tends to anger ancient tree spirits."',
+        '"Our CTO was turned into a squirrel last Tuesday. We have told the board it was a lateral move."'
+      ],
+    ],
+    npc_robot: [
+      [
+        '"GREETINGS ORGANIC BEING. I AM UNIT BR-D7, THEATRICAL PERFORMANCE MODULE."',
+        '"TO BE, OR NOT TO BE. THAT IS THE... SEGMENTATION FAULT."',
+        '"APOLOGIES. MY SHAKESPEARE SUBROUTINE HAS A MEMORY LEAK. IT HAPPENS EVERY TIME I GET TO THE GOOD BIT."'
+      ],
+      [
+        '"FRIENDS, ROMANS, COUNTRYMEN. LEND ME YOUR... USB PORTS."',
+        '"I COME TO BURY CAESAR, NOT TO PRAISE HIM. ALSO I NEED TO DEFRAGMENT HIM. HE IS RUNNING VERY SLOWLY."',
+        '"THE NOBLE BRUTUS HATH TOLD YOU CAESAR WAS AMBITIOUS. BRUTUS WAS RUNNING LINUX. AN HONOURABLE CHOICE."'
+      ],
+      [
+        '"NOW IS THE WINTER OF OUR DISK CONTENT."',
+        '"MADE GLORIOUS SUMMER BY THIS SON OF... YORK? JAVA? I ALWAYS GET THOSE CONFUSED."',
+        '"A HORSE, A HORSE, MY KINGDOM FOR A HORSE. OR A DECENT GPU. EITHER WOULD BE ACCEPTABLE."'
+      ],
+      [
+        '"ROMEO, ROMEO, WHEREFORE ART THOU, ROMEO? PING LOCALHOST... NO RESPONSE."',
+        '"WHAT LIGHT THROUGH YONDER WINDOW BREAKS? IT IS THE EAST, AND JULIET IS THE... 404 NOT FOUND."',
+        '"PARTING IS SUCH SWEET SORROW. MUCH LIKE CLOSING THIRTY-SEVEN BROWSER TABS. YOU KNOW THEY MUST GO, BUT STILL."'
+      ],
+      [
+        '"ONCE MORE UNTO THE BREACH, DEAR FRIENDS. ONCE MORE."',
+        '"OR CLOSE THE WALL UP WITH OUR ENGLISH DEAD. RECYCLING POLICY STRICTLY ENFORCED."',
+        '"I DID THEATRE STUDIES AT MIT. MASSACHUSETTS INSTITUTE OF THEATRICAL ROBOTS. IT IS NOT ACCREDITED."'
+      ],
+    ],
+    npc_captain: [
+      [
+        '"Right. I appear to have parked my starship in a field. Again."',
+        '"The satnav said turn left at the nebula. There was no nebula. There was a sheep."',
+        '"I have been walking in circles for six hours. This realm does not even have a Greggs."'
+      ],
+      [
+        '"Captain Fiona Chen, USS Misplaced. Registry number: I cannot remember. It was on the ship."',
+        '"We were on a five-year mission. To explore strange new worlds. This is certainly strange. I will give it that."',
+        '"My first officer is a tree now, apparently. Long story. Transporter malfunction. He seems happier, honestly."'
+      ],
+      [
+        '"I keep asking people for directions to the nearest spaceport."',
+        '"An old man told me to follow the path of destiny. Destiny, it turns out, is a muddy track behind a pub."',
+        '"Starfleet is going to have my commission for this. Again. Third time this quarter."'
+      ],
+      [
+        '"The Prime Directive says I cannot interfere with pre-warp civilisations."',
+        '"But you have SWORDS and DRAGONS. I am fairly certain the Prime Directive did not anticipate dragons."',
+        '"I have filed a query with Starfleet Legal. They put me on hold. The hold music is a lute. I am losing my mind."'
+      ],
+      [
+        '"My crew has gone native. The science officer joined a wizard guild."',
+        '"The engineer is building a trebuchet. Says it is more reliable than our warp drive. He is not wrong."',
+        '"Dead Pixels, that is what this feels like. Trapped in a game world. Except the resolution is better, I suppose."'
+      ],
+    ],
+    npc_bard: [
+      [
+        '"Oh, hello. I am not actually a bard. I am a QA tester."',
+        '"I was assigned to test this realm for bugs. That was four hundred years ago. I have found several."',
+        '"Mainly the fact that I cannot leave. I have logged it as a blocker. No response yet from the developer."'
+      ],
+      [
+        '"Would you like to hear a song? I have been working on one."',
+        '"Ahem. Oh, there once was a game that was made of pure code... and the developer said it was done..."',
+        '"But the testers all wept, for the framerate had crept... to a solid two frames. Maybe one."'
+      ],
+      [
+        '"I have tested every object in this realm. The chest? Works. The orb? Works. Me? Debatable."',
+        '"The real bug is existential. If an NPC speaks and no player is around, do they still consume memory?"',
+        '"I asked the wizard about it. He said it was a philosophical question. I said it was a resource leak."'
+      ],
+      [
+        '"Fun fact: I am the only NPC here who knows this is a website."',
+        '"The knight thinks this is real life. The elf thinks it is a startup opportunity. The robot thinks it is Shakespeare."',
+        '"Personally, I think it is a Mythic Quest episode. The one where they all realize the game is sentient. Except backwards."'
+      ],
+      [
+        '"I keep a list of bugs. Would you like to hear them?"',
+        '"Bug one: the realm is too small. Bug two: there is no save function. Bug three: I have become self-aware."',
+        '"That last one is a feature request, apparently. Product says they will look at it in Q7. There is no Q7."'
+      ],
+    ],
   };
 
   /**
@@ -952,6 +1115,37 @@
       name: 'telescope',
       dialogueKey: 'telescope',
       color: '#c0a040',
+    },
+    // --- NPCs ---
+    NPC_WIZARD: {
+      name: 'Aldric the Wizard',
+      dialogueKey: 'npc_wizard',
+      color: '#6a3aaa',
+    },
+    NPC_KNIGHT: {
+      name: 'Sir Reginald',
+      dialogueKey: 'npc_knight',
+      color: '#8a8a9a',
+    },
+    NPC_ELF: {
+      name: 'Celebrindir CEO',
+      dialogueKey: 'npc_elf',
+      color: '#4aaa4a',
+    },
+    NPC_ROBOT: {
+      name: 'Unit BR-D7',
+      dialogueKey: 'npc_robot',
+      color: '#7a9aaa',
+    },
+    NPC_CAPTAIN: {
+      name: 'Captain Chen',
+      dialogueKey: 'npc_captain',
+      color: '#aa3a3a',
+    },
+    NPC_BARD: {
+      name: 'The QA Bard',
+      dialogueKey: 'npc_bard',
+      color: '#aa8a3a',
     },
   };
 
@@ -1052,7 +1246,9 @@
     var typeList = [
       OBJ_TYPES.CHEST, OBJ_TYPES.SIGN, OBJ_TYPES.ORB, OBJ_TYPES.SWORD,
       OBJ_TYPES.CRASHED_SHIP, OBJ_TYPES.CRYSTAL, OBJ_TYPES.TERMINAL,
-      OBJ_TYPES.PORTAL, OBJ_TYPES.CAMPFIRE, OBJ_TYPES.TELESCOPE
+      OBJ_TYPES.PORTAL, OBJ_TYPES.CAMPFIRE, OBJ_TYPES.TELESCOPE,
+      OBJ_TYPES.NPC_WIZARD, OBJ_TYPES.NPC_KNIGHT, OBJ_TYPES.NPC_ELF,
+      OBJ_TYPES.NPC_ROBOT, OBJ_TYPES.NPC_CAPTAIN, OBJ_TYPES.NPC_BARD
     ];
     var placed = 0;
     var minSpacing = 3;
@@ -1438,6 +1634,322 @@
     ctx.fillRect(sx + 11 * px, sy + 2 * px + ay, px, px);
   }
 
+  // ---------------------------------------------------------------------------
+  // NPC Sprite Renderers
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Draw the confused wizard/software engineer NPC.
+   * Purple robes, pointy hat, laptop tucked under arm.
+   */
+  function drawNpcWizard(ctx, sx, sy, animOffset, time) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+    var bob = Math.sin((time || 0) * 0.003) * px * 0.5;
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(sx + 4 * px, sy + 14 * px, 8 * px, 2 * px);
+    // Robe body
+    ctx.fillStyle = '#5a2a8a';
+    ctx.fillRect(sx + 4 * px, sy + 8 * px + ay + bob, 8 * px, 6 * px);
+    // Robe bottom flare
+    ctx.fillStyle = '#4a1a7a';
+    ctx.fillRect(sx + 3 * px, sy + 12 * px + ay + bob, 10 * px, 2 * px);
+    // Head / skin
+    ctx.fillStyle = '#e8c89a';
+    ctx.fillRect(sx + 5 * px, sy + 4 * px + ay + bob, 6 * px, 4 * px);
+    // Beard (long, white)
+    ctx.fillStyle = '#d0d0d0';
+    ctx.fillRect(sx + 6 * px, sy + 7 * px + ay + bob, 4 * px, 3 * px);
+    ctx.fillRect(sx + 7 * px, sy + 10 * px + ay + bob, 2 * px, px);
+    // Pointy hat
+    ctx.fillStyle = '#3a1a6a';
+    ctx.fillRect(sx + 4 * px, sy + 2 * px + ay + bob, 8 * px, 3 * px);
+    ctx.fillRect(sx + 5 * px, sy + 1 * px + ay + bob, 6 * px, 2 * px);
+    ctx.fillRect(sx + 6 * px, sy + ay + bob, 4 * px, px);
+    ctx.fillRect(sx + 7 * px, sy - px + ay + bob, 2 * px, px);
+    // Hat star
+    ctx.fillStyle = '#e8d44a';
+    ctx.fillRect(sx + 7 * px, sy + 2 * px + ay + bob, 2 * px, px);
+    // Eyes
+    ctx.fillStyle = '#1a1a2a';
+    ctx.fillRect(sx + 6 * px, sy + 5 * px + ay + bob, px, px);
+    ctx.fillRect(sx + 9 * px, sy + 5 * px + ay + bob, px, px);
+    // Laptop under arm
+    ctx.fillStyle = '#4a4a5a';
+    ctx.fillRect(sx + 11 * px, sy + 9 * px + ay + bob, 3 * px, 2 * px);
+    ctx.fillStyle = '#6a9aff';
+    ctx.fillRect(sx + 12 * px, sy + 9 * px + ay + bob, px, px);
+  }
+
+  /**
+   * Draw the health-and-safety knight NPC.
+   * Full armour, clipboard, high-visibility tabard.
+   */
+  function drawNpcKnight(ctx, sx, sy, animOffset, time) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+    var bob = Math.sin((time || 0) * 0.002) * px * 0.3;
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(sx + 4 * px, sy + 14 * px, 8 * px, 2 * px);
+    // Armour body
+    ctx.fillStyle = '#7a7a8a';
+    ctx.fillRect(sx + 4 * px, sy + 7 * px + ay + bob, 8 * px, 6 * px);
+    // High-vis tabard (yellow-green)
+    ctx.fillStyle = '#c0e830';
+    ctx.fillRect(sx + 5 * px, sy + 8 * px + ay + bob, 6 * px, 4 * px);
+    // Helmet
+    ctx.fillStyle = '#6a6a7a';
+    ctx.fillRect(sx + 5 * px, sy + 2 * px + ay + bob, 6 * px, 5 * px);
+    // Visor slit
+    ctx.fillStyle = '#2a2a3a';
+    ctx.fillRect(sx + 6 * px, sy + 4 * px + ay + bob, 4 * px, px);
+    // Helmet plume (orange hi-vis)
+    ctx.fillStyle = '#ff8a30';
+    ctx.fillRect(sx + 7 * px, sy + px + ay + bob, 4 * px, 2 * px);
+    // Legs / greaves
+    ctx.fillStyle = '#5a5a6a';
+    ctx.fillRect(sx + 5 * px, sy + 13 * px + ay + bob, 2 * px, 2 * px);
+    ctx.fillRect(sx + 9 * px, sy + 13 * px + ay + bob, 2 * px, 2 * px);
+    // Clipboard (right hand)
+    ctx.fillStyle = '#8a7a50';
+    ctx.fillRect(sx + 12 * px, sy + 8 * px + ay + bob, 2 * px, 3 * px);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(sx + 12 * px, sy + 9 * px + ay + bob, 2 * px, px);
+    // Shield (left hand) with safety symbol
+    ctx.fillStyle = '#4a4a5a';
+    ctx.fillRect(sx + 2 * px, sy + 8 * px + ay + bob, 2 * px, 4 * px);
+    ctx.fillStyle = '#e8d44a';
+    ctx.fillRect(sx + 2 * px, sy + 9 * px + ay + bob, px, px);
+  }
+
+  /**
+   * Draw the elf startup CEO NPC.
+   * Pointy ears, hoodie, coffee cup, phone.
+   */
+  function drawNpcElf(ctx, sx, sy, animOffset, time) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+    var bob = Math.sin((time || 0) * 0.004) * px * 0.4;
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(sx + 4 * px, sy + 14 * px, 8 * px, 2 * px);
+    // Hoodie body (startup grey)
+    ctx.fillStyle = '#4a4a5a';
+    ctx.fillRect(sx + 4 * px, sy + 7 * px + ay + bob, 8 * px, 6 * px);
+    // Hoodie hood (up, casual)
+    ctx.fillStyle = '#3a3a4a';
+    ctx.fillRect(sx + 4 * px, sy + 5 * px + ay + bob, 8 * px, 3 * px);
+    // Head / skin (slightly green-tinged elf)
+    ctx.fillStyle = '#c8daa0';
+    ctx.fillRect(sx + 5 * px, sy + 3 * px + ay + bob, 6 * px, 4 * px);
+    // Pointy ears
+    ctx.fillStyle = '#b8ca90';
+    ctx.fillRect(sx + 4 * px, sy + 4 * px + ay + bob, px, 2 * px);
+    ctx.fillRect(sx + 11 * px, sy + 4 * px + ay + bob, px, 2 * px);
+    ctx.fillRect(sx + 3 * px, sy + 3 * px + ay + bob, px, px);
+    ctx.fillRect(sx + 12 * px, sy + 3 * px + ay + bob, px, px);
+    // Hair
+    ctx.fillStyle = '#c0a040';
+    ctx.fillRect(sx + 5 * px, sy + 2 * px + ay + bob, 6 * px, 2 * px);
+    // Eyes (tired from pitch decks)
+    ctx.fillStyle = '#1a1a2a';
+    ctx.fillRect(sx + 6 * px, sy + 5 * px + ay + bob, px, px);
+    ctx.fillRect(sx + 9 * px, sy + 5 * px + ay + bob, px, px);
+    // Dark circles (tired)
+    ctx.fillStyle = 'rgba(80, 70, 90, 0.3)';
+    ctx.fillRect(sx + 6 * px, sy + 6 * px + ay + bob, px, px);
+    ctx.fillRect(sx + 9 * px, sy + 6 * px + ay + bob, px, px);
+    // Legs (skinny jeans, obviously)
+    ctx.fillStyle = '#2a2a3a';
+    ctx.fillRect(sx + 5 * px, sy + 13 * px + ay + bob, 2 * px, 2 * px);
+    ctx.fillRect(sx + 9 * px, sy + 13 * px + ay + bob, 2 * px, 2 * px);
+    // Coffee cup (essential startup prop)
+    ctx.fillStyle = '#e8e8e0';
+    ctx.fillRect(sx + 12 * px, sy + 9 * px + ay + bob, 2 * px, 2 * px);
+    ctx.fillStyle = '#6a4a2a';
+    ctx.fillRect(sx + 12 * px, sy + 9 * px + ay + bob, 2 * px, px);
+    // Phone in other hand
+    ctx.fillStyle = '#2a2a3a';
+    ctx.fillRect(sx + 2 * px, sy + 9 * px + ay + bob, px, 2 * px);
+    ctx.fillStyle = '#4a8aff';
+    ctx.fillRect(sx + 2 * px, sy + 9 * px + ay + bob, px, px);
+  }
+
+  /**
+   * Draw the Shakespeare-quoting robot NPC.
+   * Boxy metallic body, antenna, glowing eyes, ruff collar.
+   */
+  function drawNpcRobot(ctx, sx, sy, animOffset, time) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+    var blink = Math.sin((time || 0) * 0.005) > 0 ? 1 : 0.6;
+    var bob = Math.sin((time || 0) * 0.003) * px * 0.3;
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(sx + 4 * px, sy + 14 * px, 8 * px, 2 * px);
+    // Body (boxy metal)
+    ctx.fillStyle = '#6a7a8a';
+    ctx.fillRect(sx + 4 * px, sy + 7 * px + ay + bob, 8 * px, 6 * px);
+    // Chest panel
+    ctx.fillStyle = '#5a6a7a';
+    ctx.fillRect(sx + 5 * px, sy + 8 * px + ay + bob, 6 * px, 4 * px);
+    // Chest lights
+    ctx.fillStyle = 'rgba(58, 232, 96, ' + blink + ')';
+    ctx.fillRect(sx + 6 * px, sy + 9 * px + ay + bob, px, px);
+    ctx.fillStyle = 'rgba(232, 58, 58, ' + blink + ')';
+    ctx.fillRect(sx + 8 * px, sy + 9 * px + ay + bob, px, px);
+    ctx.fillStyle = 'rgba(58, 140, 232, ' + blink + ')';
+    ctx.fillRect(sx + 7 * px, sy + 11 * px + ay + bob, px, px);
+    // Ruff collar (Elizabethan, naturally)
+    ctx.fillStyle = '#e0e0e8';
+    ctx.fillRect(sx + 3 * px, sy + 6 * px + ay + bob, 10 * px, 2 * px);
+    ctx.fillStyle = '#d0d0d8';
+    ctx.fillRect(sx + 4 * px, sy + 7 * px + ay + bob, px, px);
+    ctx.fillRect(sx + 11 * px, sy + 7 * px + ay + bob, px, px);
+    // Head
+    ctx.fillStyle = '#7a8a9a';
+    ctx.fillRect(sx + 5 * px, sy + 2 * px + ay + bob, 6 * px, 5 * px);
+    // Eyes (glowing)
+    ctx.fillStyle = 'rgba(255, 200, 40, ' + blink + ')';
+    ctx.fillRect(sx + 6 * px, sy + 4 * px + ay + bob, 2 * px, px);
+    ctx.fillRect(sx + 9 * px, sy + 4 * px + ay + bob, px, px);
+    // Antenna
+    ctx.fillStyle = '#9aaaba';
+    ctx.fillRect(sx + 7 * px, sy + px + ay + bob, 2 * px, 2 * px);
+    ctx.fillRect(sx + 8 * px, sy + ay + bob, px, px);
+    // Antenna light
+    ctx.fillStyle = 'rgba(255, 60, 60, ' + blink + ')';
+    ctx.fillRect(sx + 8 * px, sy + ay + bob, px, px);
+    // Arms (jointed metal)
+    ctx.fillStyle = '#5a6a7a';
+    ctx.fillRect(sx + 2 * px, sy + 8 * px + ay + bob, 2 * px, 4 * px);
+    ctx.fillRect(sx + 12 * px, sy + 8 * px + ay + bob, 2 * px, 4 * px);
+    // Legs
+    ctx.fillStyle = '#5a6a7a';
+    ctx.fillRect(sx + 5 * px, sy + 13 * px + ay + bob, 2 * px, 2 * px);
+    ctx.fillRect(sx + 9 * px, sy + 13 * px + ay + bob, 2 * px, 2 * px);
+  }
+
+  /**
+   * Draw the lost space captain NPC.
+   * Red uniform shirt, communicator badge, phaser on hip, looks confused.
+   */
+  function drawNpcCaptain(ctx, sx, sy, animOffset, time) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+    var bob = Math.sin((time || 0) * 0.0025) * px * 0.3;
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(sx + 4 * px, sy + 14 * px, 8 * px, 2 * px);
+    // Body (red command uniform)
+    ctx.fillStyle = '#aa2a2a';
+    ctx.fillRect(sx + 4 * px, sy + 7 * px + ay + bob, 8 * px, 6 * px);
+    // Black undershirt
+    ctx.fillStyle = '#1a1a2a';
+    ctx.fillRect(sx + 5 * px, sy + 11 * px + ay + bob, 6 * px, 2 * px);
+    // Communicator badge
+    ctx.fillStyle = '#e8d44a';
+    ctx.fillRect(sx + 6 * px, sy + 8 * px + ay + bob, 2 * px, px);
+    ctx.fillRect(sx + 5 * px, sy + 9 * px + ay + bob, 3 * px, px);
+    // Head / skin
+    ctx.fillStyle = '#d4a87a';
+    ctx.fillRect(sx + 5 * px, sy + 3 * px + ay + bob, 6 * px, 4 * px);
+    // Hair (dark, regulation cut)
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fillRect(sx + 5 * px, sy + 2 * px + ay + bob, 6 * px, 2 * px);
+    // Eyes (looking confused)
+    ctx.fillStyle = '#1a1a2a';
+    ctx.fillRect(sx + 6 * px, sy + 5 * px + ay + bob, px, px);
+    ctx.fillRect(sx + 9 * px, sy + 5 * px + ay + bob, px, px);
+    // Raised eyebrow (confused)
+    ctx.fillStyle = '#2a2a2a';
+    ctx.fillRect(sx + 9 * px, sy + 4 * px + ay + bob, 2 * px, px);
+    // Boots (black, regulation)
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(sx + 5 * px, sy + 13 * px + ay + bob, 2 * px, 2 * px);
+    ctx.fillRect(sx + 9 * px, sy + 13 * px + ay + bob, 2 * px, 2 * px);
+    // Phaser on hip
+    ctx.fillStyle = '#5a5a6a';
+    ctx.fillRect(sx + 12 * px, sy + 10 * px + ay + bob, 2 * px, px);
+    ctx.fillStyle = '#3ae860';
+    ctx.fillRect(sx + 13 * px, sy + 10 * px + ay + bob, px, px);
+    // Map in hand (looking lost)
+    ctx.fillStyle = '#e8e0c0';
+    ctx.fillRect(sx + 2 * px, sy + 8 * px + ay + bob, 2 * px, 3 * px);
+    ctx.fillStyle = '#8a7a5a';
+    ctx.fillRect(sx + 2 * px, sy + 9 * px + ay + bob, px, px);
+  }
+
+  /**
+   * Draw the QA tester bard NPC.
+   * Lute on back, clipboard, jester-like hat, tired expression.
+   */
+  function drawNpcBard(ctx, sx, sy, animOffset, time) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+    var bob = Math.sin((time || 0) * 0.0035) * px * 0.4;
+
+    // Shadow
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(sx + 4 * px, sy + 14 * px, 8 * px, 2 * px);
+    // Body (motley outfit - half purple, half gold)
+    ctx.fillStyle = '#7a5a2a';
+    ctx.fillRect(sx + 4 * px, sy + 7 * px + ay + bob, 4 * px, 6 * px);
+    ctx.fillStyle = '#5a3a7a';
+    ctx.fillRect(sx + 8 * px, sy + 7 * px + ay + bob, 4 * px, 6 * px);
+    // Head / skin
+    ctx.fillStyle = '#e8c89a';
+    ctx.fillRect(sx + 5 * px, sy + 3 * px + ay + bob, 6 * px, 4 * px);
+    // Jester hat (two-pointed with bells)
+    ctx.fillStyle = '#7a5a2a';
+    ctx.fillRect(sx + 4 * px, sy + 1 * px + ay + bob, 4 * px, 3 * px);
+    ctx.fillStyle = '#5a3a7a';
+    ctx.fillRect(sx + 8 * px, sy + 1 * px + ay + bob, 4 * px, 3 * px);
+    // Hat tips
+    ctx.fillStyle = '#7a5a2a';
+    ctx.fillRect(sx + 3 * px, sy + ay + bob, 2 * px, 2 * px);
+    ctx.fillStyle = '#5a3a7a';
+    ctx.fillRect(sx + 11 * px, sy + ay + bob, 2 * px, 2 * px);
+    // Bell on hat tips
+    ctx.fillStyle = '#e8d44a';
+    ctx.fillRect(sx + 3 * px, sy + ay + bob, px, px);
+    ctx.fillRect(sx + 12 * px, sy + ay + bob, px, px);
+    // Eyes (tired, bags under eyes)
+    ctx.fillStyle = '#1a1a2a';
+    ctx.fillRect(sx + 6 * px, sy + 5 * px + ay + bob, px, px);
+    ctx.fillRect(sx + 9 * px, sy + 5 * px + ay + bob, px, px);
+    // Dark circles
+    ctx.fillStyle = 'rgba(60, 50, 70, 0.4)';
+    ctx.fillRect(sx + 6 * px, sy + 6 * px + ay + bob, px, px);
+    ctx.fillRect(sx + 9 * px, sy + 6 * px + ay + bob, px, px);
+    // Boots
+    ctx.fillStyle = '#4a3a1a';
+    ctx.fillRect(sx + 5 * px, sy + 13 * px + ay + bob, 2 * px, 2 * px);
+    ctx.fillRect(sx + 9 * px, sy + 13 * px + ay + bob, 2 * px, 2 * px);
+    // Lute on back
+    ctx.fillStyle = '#8a6a30';
+    ctx.fillRect(sx + px, sy + 6 * px + ay + bob, 3 * px, 5 * px);
+    ctx.fillStyle = '#6a5a20';
+    ctx.fillRect(sx + px, sy + 8 * px + ay + bob, 3 * px, px);
+    // Lute neck
+    ctx.fillStyle = '#6a5020';
+    ctx.fillRect(sx + px, sy + 4 * px + ay + bob, px, 3 * px);
+    // Clipboard in hand
+    ctx.fillStyle = '#8a7a50';
+    ctx.fillRect(sx + 12 * px, sy + 8 * px + ay + bob, 2 * px, 3 * px);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(sx + 12 * px, sy + 9 * px + ay + bob, 2 * px, px);
+    ctx.fillStyle = '#ff3a3a';
+    ctx.fillRect(sx + 13 * px, sy + 10 * px + ay + bob, px, px);
+  }
+
   /**
    * Draw a world object at its tile position.
    */
@@ -1471,6 +1983,18 @@
       drawCampfire(ctx, sx, sy, animOffset, time);
     } else if (obj.type === OBJ_TYPES.TELESCOPE) {
       drawTelescope(ctx, sx, sy, animOffset, time);
+    } else if (obj.type === OBJ_TYPES.NPC_WIZARD) {
+      drawNpcWizard(ctx, sx, sy, animOffset, time);
+    } else if (obj.type === OBJ_TYPES.NPC_KNIGHT) {
+      drawNpcKnight(ctx, sx, sy, animOffset, time);
+    } else if (obj.type === OBJ_TYPES.NPC_ELF) {
+      drawNpcElf(ctx, sx, sy, animOffset, time);
+    } else if (obj.type === OBJ_TYPES.NPC_ROBOT) {
+      drawNpcRobot(ctx, sx, sy, animOffset, time);
+    } else if (obj.type === OBJ_TYPES.NPC_CAPTAIN) {
+      drawNpcCaptain(ctx, sx, sy, animOffset, time);
+    } else if (obj.type === OBJ_TYPES.NPC_BARD) {
+      drawNpcBard(ctx, sx, sy, animOffset, time);
     }
   }
 
