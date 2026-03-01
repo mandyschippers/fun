@@ -422,7 +422,482 @@
   // ---------------------------------------------------------------------------
 
   var worldObjects = [];
-  var interactionEffect = null; // { text, x, y, timer }
+
+  // -------------------------------------------------------------------------
+  // Dialogue System
+  // -------------------------------------------------------------------------
+
+  var dialogue = {
+    active: false,
+    pages: [],         // array of strings (one per page)
+    currentPage: 0,
+    charIndex: 0,      // how many chars of current page are visible
+    charTimer: 0,      // accumulator for typewriter effect
+    charSpeed: 35,     // ms per character
+    fullyRevealed: false,
+    speakerName: '',   // optional speaker name at top of box
+  };
+
+  /**
+   * Open the dialogue box with an array of text pages.
+   */
+  function openDialogue(pages, speakerName) {
+    dialogue.active = true;
+    dialogue.pages = pages;
+    dialogue.currentPage = 0;
+    dialogue.charIndex = 0;
+    dialogue.charTimer = 0;
+    dialogue.fullyRevealed = false;
+    dialogue.speakerName = speakerName || '';
+  }
+
+  /**
+   * Advance dialogue: reveal full text, go to next page, or close.
+   */
+  function advanceDialogue() {
+    if (!dialogue.active) return;
+
+    if (!dialogue.fullyRevealed) {
+      // Instantly reveal current page
+      dialogue.charIndex = dialogue.pages[dialogue.currentPage].length;
+      dialogue.fullyRevealed = true;
+    } else if (dialogue.currentPage < dialogue.pages.length - 1) {
+      // Next page
+      dialogue.currentPage++;
+      dialogue.charIndex = 0;
+      dialogue.charTimer = 0;
+      dialogue.fullyRevealed = false;
+    } else {
+      // Close dialogue
+      dialogue.active = false;
+    }
+  }
+
+  /**
+   * Update dialogue typewriter effect.
+   */
+  function updateDialogue(dt) {
+    if (!dialogue.active || dialogue.fullyRevealed) return;
+
+    dialogue.charTimer += dt;
+    while (dialogue.charTimer >= dialogue.charSpeed) {
+      dialogue.charTimer -= dialogue.charSpeed;
+      dialogue.charIndex++;
+      if (dialogue.charIndex >= dialogue.pages[dialogue.currentPage].length) {
+        dialogue.charIndex = dialogue.pages[dialogue.currentPage].length;
+        dialogue.fullyRevealed = true;
+        break;
+      }
+    }
+  }
+
+  /**
+   * Draw the RPG-style dialogue box on canvas.
+   */
+  function drawDialogueBox(ctx, time) {
+    if (!dialogue.active) return;
+
+    var w = canvas.width;
+    var h = canvas.height;
+    var textScale = 2;
+    var maxCharsPerLine = Math.floor((w - 60) / ((5 + 1) * textScale));
+    if (maxCharsPerLine < 15) maxCharsPerLine = 15;
+    if (maxCharsPerLine > 40) maxCharsPerLine = 40;
+
+    // Get visible text (typewriter effect)
+    var fullText = dialogue.pages[dialogue.currentPage];
+    var visibleText = fullText.substring(0, dialogue.charIndex);
+
+    // Word-wrap visible text
+    var lines = wordWrap(visibleText, maxCharsPerLine);
+    // Also compute total lines for full text to size the box consistently
+    var allLines = wordWrap(fullText, maxCharsPerLine);
+    var maxVisibleLines = Math.min(allLines.length, 5);
+
+    var lineHeight = 7 * textScale + 6;
+    var boxPadding = 16;
+    var boxH = maxVisibleLines * lineHeight + boxPadding * 2 + (dialogue.speakerName ? lineHeight + 4 : 0);
+    var boxW = Math.min(w - 40, maxCharsPerLine * (5 + 1) * textScale + boxPadding * 2 + 20);
+    var boxX = Math.floor((w - boxW) / 2);
+    var boxY = h - boxH - 24;
+
+    // Box background (dark with slight transparency)
+    ctx.fillStyle = 'rgba(8, 20, 8, 0.94)';
+    ctx.fillRect(boxX, boxY, boxW, boxH);
+
+    // Double border (outer)
+    ctx.fillStyle = 'rgba(106, 170, 58, 0.9)';
+    ctx.fillRect(boxX, boxY, boxW, 2);
+    ctx.fillRect(boxX, boxY + boxH - 2, boxW, 2);
+    ctx.fillRect(boxX, boxY, 2, boxH);
+    ctx.fillRect(boxX + boxW - 2, boxY, 2, boxH);
+
+    // Inner border
+    ctx.fillStyle = 'rgba(74, 120, 42, 0.6)';
+    ctx.fillRect(boxX + 4, boxY + 4, boxW - 8, 1);
+    ctx.fillRect(boxX + 4, boxY + boxH - 5, boxW - 8, 1);
+    ctx.fillRect(boxX + 4, boxY + 4, 1, boxH - 8);
+    ctx.fillRect(boxX + boxW - 5, boxY + 4, 1, boxH - 8);
+
+    // Corner accents (gold)
+    ctx.fillStyle = 'rgba(232, 212, 74, 0.8)';
+    var cs = 8;
+    // Top-left
+    ctx.fillRect(boxX, boxY, cs, 2);
+    ctx.fillRect(boxX, boxY, 2, cs);
+    // Top-right
+    ctx.fillRect(boxX + boxW - cs, boxY, cs, 2);
+    ctx.fillRect(boxX + boxW - 2, boxY, 2, cs);
+    // Bottom-left
+    ctx.fillRect(boxX, boxY + boxH - 2, cs, 2);
+    ctx.fillRect(boxX, boxY + boxH - cs, 2, cs);
+    // Bottom-right
+    ctx.fillRect(boxX + boxW - cs, boxY + boxH - 2, cs, 2);
+    ctx.fillRect(boxX + boxW - 2, boxY + boxH - cs, 2, cs);
+
+    // Speaker name (if present)
+    var textStartY = boxY + boxPadding;
+    if (dialogue.speakerName) {
+      drawPixelText(ctx, dialogue.speakerName, boxX + boxPadding + 4, textStartY, textScale, 'rgba(232, 212, 74, 0.95)');
+      textStartY += lineHeight + 4;
+    }
+
+    // Draw text lines
+    for (var l = 0; l < lines.length && l < maxVisibleLines; l++) {
+      drawPixelText(ctx, lines[l], boxX + boxPadding, textStartY + l * lineHeight, textScale, 'rgba(200, 230, 180, 0.95)');
+    }
+
+    // Draw advance indicator
+    if (dialogue.fullyRevealed) {
+      var indicatorPulse = Math.sin(time * 0.006) * 0.3 + 0.7;
+      var indX = boxX + boxW - boxPadding - 8;
+      var indY = boxY + boxH - boxPadding - 4;
+
+      if (dialogue.currentPage < dialogue.pages.length - 1) {
+        // Down arrow for "more pages"
+        ctx.fillStyle = 'rgba(200, 230, 180, ' + indicatorPulse + ')';
+        ctx.fillRect(indX, indY, 6, 2);
+        ctx.fillRect(indX + 1, indY + 2, 4, 2);
+        ctx.fillRect(indX + 2, indY + 4, 2, 2);
+      } else {
+        // Small square for "end"
+        ctx.fillStyle = 'rgba(232, 212, 74, ' + indicatorPulse + ')';
+        ctx.fillRect(indX, indY, 6, 6);
+        ctx.fillStyle = 'rgba(8, 20, 8, 0.9)';
+        ctx.fillRect(indX + 2, indY + 2, 2, 2);
+      }
+    }
+  }
+
+  /**
+   * Simple word-wrap utility.
+   */
+  function wordWrap(text, maxChars) {
+    var words = text.split(' ');
+    var lines = [];
+    var currentLine = '';
+
+    for (var i = 0; i < words.length; i++) {
+      var testLine = currentLine.length > 0 ? currentLine + ' ' + words[i] : words[i];
+      if (testLine.length > maxChars && currentLine.length > 0) {
+        lines.push(currentLine);
+        currentLine = words[i];
+      } else {
+        currentLine = testLine;
+      }
+    }
+    if (currentLine.length > 0) lines.push(currentLine);
+    if (lines.length === 0) lines.push('');
+    return lines;
+  }
+
+  // -------------------------------------------------------------------------
+  // Absurdist Dialogue Content
+  // -------------------------------------------------------------------------
+
+  /**
+   * Pick a random element from an array.
+   */
+  function randomChoice(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  /**
+   * Dialogue sets for each object type.
+   * Each entry is an array of pages (multi-page dialogue).
+   */
+  var DIALOGUE = {
+    chest: [
+      [
+        'You open the chest.',
+        'Inside you find a strongly-worded letter from the Chest Workers Union regarding unpaid overtime and inadequate hinge maintenance.',
+        'It concludes: "We shall be taking industrial action forthwith. Sincerely, Gerald, Shop Steward."'
+      ],
+      [
+        'The chest creaks open with considerable reluctance.',
+        'It contains a single sock. The other one is presumably in another dimension, living its best life.',
+        'A note reads: "If found, return to the Interdimensional Laundry Service. Ask for Brenda. She knows."'
+      ],
+      [
+        'You pry the chest open with what you consider to be great effort.',
+        'Inside: a smaller chest. Inside that: an even smaller chest. It is chests all the way down.',
+        'The tiniest chest contains a note that reads simply: "This is a metaphor. For what, we cannot say."'
+      ],
+      [
+        'The chest clears its throat, which is impressive for something without a throat.',
+        '"I have been sitting here for four hundred years," it says. "Do you know what that is like?"',
+        '"Of course you do not. You have the attention span of a goldfish on holiday. Off you pop, then."'
+      ],
+      [
+        'You find a treasure map inside.',
+        'Upon closer inspection, it appears to be a council planning application for a conservatory.',
+        'It has been rejected. Even in a fantasy realm, planning permission is a nightmare.'
+      ],
+    ],
+    sign: [
+      [
+        'WELCOME TO THE REALM',
+        'Population: You. Previous population: Also you, but from a different browser tab.',
+        'Visitors are kindly requested not to feed the pixels. Or make eye contact with the void.'
+      ],
+      [
+        'NOTICE: This sign has been erected by the Department of Stating the Bleeding Obvious.',
+        'It reads: "You are reading a sign."',
+        'Below in smaller text: "Well done. Your parents must be terribly proud."'
+      ],
+      [
+        'DANGER AHEAD',
+        'Just kidding. The budget for danger was reallocated to signage.',
+        'Please enjoy the complete absence of peril. Tea will be served at four.'
+      ],
+      [
+        'QUEST BOARD',
+        'Available quests: 1. Locate the developer and ask them to explain themselves. 2. Go outside. Actual outside.',
+        'Reward: A quiet sense of having accomplished something, tempered by the suspicion that you have not.'
+      ],
+      [
+        'THIS SIGN INTENTIONALLY LEFT BLANK',
+        '...apart from this text explaining that it was intentionally left blank.',
+        'Which rather defeats the purpose. But then, so does most of modern life.'
+      ],
+    ],
+    orb: [
+      [
+        'The orb pulses with mysterious energy.',
+        'It shows you a vision of the future: You, still on this website, five minutes from now.',
+        'Unsettling. Accurate. Frankly a bit rude.'
+      ],
+      [
+        'You gaze into the orb.',
+        'It gazes back. There is an uncomfortable silence, like bumping into someone you vaguely know at Tesco.',
+        'The orb looks away first. A small victory, but you will take it.'
+      ],
+      [
+        'The orb hums with cosmic power.',
+        'It reveals the answer to life, the universe, and everything.',
+        'It is, of course, 42. You already knew that. The orb seems rather put out about the whole thing.'
+      ],
+      [
+        'The orb speaks in a booming voice: "I AM THE ALL-SEEING ORB!"',
+        '"I KNOW ALL! I SEE ALL! I... hang on, is that a smudge? Right there on my equator."',
+        '"Would you mind? Omniscience is frightfully difficult with fingerprints everywhere."'
+      ],
+      [
+        'The orb flickers like a dying telly in a Blackpool B&B.',
+        'For a brief moment it shows what appears to be a Mythic Quest episode.',
+        'The orb has impeccable taste but deeply questionable priorities.'
+      ],
+    ],
+    sword: [
+      [
+        'The sword begins to speak, which is already more than most furniture manages.',
+        '"I have been waiting four hundred years for someone to pull me out."',
+        '"Honestly, I have had time to think, and I would rather you did not. I have got a routine going."'
+      ],
+      [
+        'You attempt to pull the sword from the stone.',
+        'The sword does not budge. The stone, however, lifts right out of the ground.',
+        'Congratulations. You now wield the legendary Stone. It is profoundly unhelpful.'
+      ],
+      [
+        'The sword glows with ancient power.',
+        '"You must answer three riddles to claim me!" it announces grandly.',
+        '"First: what is the airspeed velocity of an unladen swallow?" "African or European?" "...I do not know that. AAARGH!"'
+      ],
+      [
+        'The sword whispers: "They call me Lightbringer, Flamecleaver, Doomfang..."',
+        '"But between you and me, my actual name is Kevin."',
+        '"If word gets out to the other legendary weapons, I shall never hear the end of it."'
+      ],
+      [
+        'You grasp the hilt firmly.',
+        'A booming voice echoes: "ONLY THE WORTHY MAY CLAIM THIS BLADE!"',
+        '"Also, your grip is appalling. Wrist straighter. Have you never held a sword? Standards have really gone downhill."'
+      ],
+    ],
+    crashed_ship: [
+      [
+        'A crashed starship. Its hull still hums with residual power, like a fridge nobody has bothered to unplug.',
+        'The registration plate reads: "USS PLOT DEVICE - NCC-1234-OOPS"',
+        'Someone forgot to check their dilithium crystals. A tale as old as warp travel itself.'
+      ],
+      [
+        'You examine the ship wreckage.',
+        'The black box recording plays: "Captain, we are being hailed." "On screen." "Sir, it appears to be a pop-up advert."',
+        '"SHIELDS UP! TOO LATE, THEY HAVE INSTALLED A BROWSER TOOLBAR! ALL IS LOST!"'
+      ],
+      [
+        'The ship computer flickers to life with all the enthusiasm of a Monday morning.',
+        '"Welcome aboard. Our current location is: a website. Our intended destination was: literally anywhere else."',
+        '"The in-flight entertainment today is a retro game about walking into things. Refreshments will not be served."'
+      ],
+      [
+        'You find the captain log. Star date: undefined. Mood: also undefined.',
+        '"Day 47. Still crashed. The locals keep prodding us with their spacebar. It is becoming tiresome."',
+        '"The crew have started a book club. We are reading the Hitchhiker Guide. The irony is not lost on us."'
+      ],
+      [
+        'Sparks fly from the damaged hull.',
+        'A small robot emerges: "GOOD AFTERNOON. I AM SHIP REPAIR UNIT 404."',
+        '"I REGRET TO INFORM YOU THAT THE SHIP CANNOT BE FOUND. HAVE YOU TRIED SWITCHING THE UNIVERSE OFF AND ON AGAIN?"'
+      ],
+    ],
+    crystal: [
+      [
+        'The crystal hums.',
+        'It sounds suspiciously like it is humming the Star Trek theme. Badly. Off-key. With feeling.',
+        'It hits a wrong note and vibrates with what can only be described as crystalline embarrassment.'
+      ],
+      [
+        'You touch the crystal.',
+        'It shows you a parallel universe where you are not touching a crystal.',
+        'That version of you appears to be having a considerably better afternoon, if we are being honest.'
+      ],
+      [
+        'The crystal formation pulses with arcane energy.',
+        'Translated from Ancient Crystal, the pulsing reads: "LOREM IPSUM DOLOR SIT AMET"',
+        'Even magical artifacts resort to placeholder text. Austerity measures, one supposes.'
+      ],
+      [
+        'The crystal rings out a clear note.',
+        'Three more crystals in the distance ring in harmony. A voice booms: "YOU HAVE SOLVED THE CRYSTAL PUZZLE!"',
+        'You are immediately awarded no points, no prize, and the mild bewilderment of everyone present.'
+      ],
+      [
+        'The crystal whispers ancient secrets.',
+        '"Psst. The cake is a lie. The floor is lava. Your princess is in another castle."',
+        '"Terribly sorry, I get all my wisdom secondhand. I am not really a proper crystal. More of an enthusiast."'
+      ],
+    ],
+    terminal: [
+      [
+        'BOOT SEQUENCE INITIATED...',
+        'Loading... Loading... Still loading... Having a bit of a think...',
+        'SYSTEM ONLINE. Right then. Shall we crack on?'
+      ],
+      [
+        'The screen flickers to life with visible reluctance.',
+        'WELCOME TO REALM-OS v0.42. Last updated: THE BEGINNING OF TIME. Known bugs: all of them.',
+        'You have 14,000,605 unread messages. One of them is important. Best of luck sorting that out.'
+      ],
+      [
+        'Terminal output: RUNNING DIAGNOSTICS...',
+        'CPU: Present. RAM: Adequate. Hard drive: Running largely on good intentions.',
+        'DIAGNOSIS COMPLETE: Everything is technically on fire but operating within acceptable British parameters.'
+      ],
+      [
+        'You type "help" into the terminal.',
+        'The terminal responds, after a pause: "No."',
+        'You type "please?" It sighs electronically. "Oh, very well. Press spacebar to continue existing. You are welcome."'
+      ],
+      [
+        'INCOMING TRANSMISSION...',
+        '"Good afternoon. We have been trying to reach you about your realm extended warranty."',
+        '"Press 1 for dragons. Press 2 for additional dragons. Press 3 to lodge a formal complaint about the dragons."'
+      ],
+    ],
+    portal: [
+      [
+        'A shimmering portal between dimensions. How lovely.',
+        'You peer inside. It appears to lead to... the same website but with a different CSS theme.',
+        'Truly, the multiverse is vast, unknowable, and disappointingly consistent.'
+      ],
+      [
+        'The portal crackles with interdimensional energy.',
+        'A notice beside it reads: "WARNING - May cause: time travel, existential dread, or mild indigestion."',
+        '"The management accepts no liability for paradoxes, temporal loops, or awkward encounters with your future self."'
+      ],
+      [
+        'You hear voices from the other side of the portal.',
+        '"Gerald, did you leave the portal on again?" "I thought YOU switched it off!" "The energy bill will be astronomical."',
+        'Interdimensional domestic disputes. Some things transcend the boundaries of space and time.'
+      ],
+      [
+        'The portal shimmers invitingly.',
+        'A small printed notice is sellotaped to the frame: "OUT OF ORDER - Please use the portal on level 3."',
+        'Below that, scrawled in biro: "Level 3 portal also broken. Try screaming into the void instead."'
+      ],
+      [
+        'The portal hums like a fridge at 3am in a shared flat.',
+        'For a moment you see Silicon Valley through it. Someone is having an argument about tabs versus spaces.',
+        'You wisely decide not to enter. That particular conflict has no winners.'
+      ],
+    ],
+    campfire: [
+      [
+        'The campfire crackles in a manner that can only be described as companionable.',
+        'A note pinned nearby reads: "Gone questing. Help yourself to marshmallows."',
+        'There are no marshmallows. There were never marshmallows. The note is, and always has been, a fiction.'
+      ],
+      [
+        'You sit by the fire.',
+        'For a brief moment, you feel at peace. Then you remember you are a collection of pixels on someone\'s website.',
+        'The existential crisis passes, as they tend to. The fire is still rather nice, all things considered.'
+      ],
+      [
+        'The campfire tells a story. Yes, the fire itself. Do keep up.',
+        '"Once upon a time, there was a little flame who dreamed of becoming a great bonfire."',
+        '"But health and safety said no. Three risk assessments later, it gave up. Such is the modern condition."'
+      ],
+      [
+        'Something is roasting over the fire.',
+        'Upon inspection, it appears to be a USB drive. An ancient offering to the technology gods.',
+        'The sacred ritual of "have you tried switching it off and on again" must be observed. It is tradition.'
+      ],
+      [
+        'The campfire flickers in morse code.',
+        'Translated, it reads: "...SEND FIREWOOD... RUNNING ON FUMES... TELL MY ASHES I LOVE THEM..."',
+        'Terribly dramatic, for a campfire. But then, who among us has not had days like that?'
+      ],
+    ],
+    telescope: [
+      [
+        'You peer through the telescope.',
+        'You can see the edge of the canvas. Beyond it lies... CSS. Infinite, terrifying CSS.',
+        'You look away sharply. Some things mortal eyes were simply not meant to witness.'
+      ],
+      [
+        'The telescope swivels toward the stars.',
+        'You spot a constellation that looks exactly like a rubber duck. Astronomers call it "Anas Flexilis."',
+        'Everyone else calls it "that duck thing." Astronomy, like most things, is better without astronomers.'
+      ],
+      [
+        'You adjust the telescope lens.',
+        'It zooms in on a distant planet where everyone programmes exclusively in COBOL.',
+        'You shudder. There are fates worse than death, and that planet has catalogued most of them.'
+      ],
+      [
+        'The telescope has a sticky note attached to it.',
+        'It reads: "Dear future astronomer - the meaning of life is in the third star to the left."',
+        '"P.S. I was fibbing about the star. But you looked, did you not? Marvellous."'
+      ],
+      [
+        'You look through the telescope at the night sky.',
+        'A small, distant spaceship is towing a banner that reads: "DRINK MORE PIXEL ALE"',
+        'Advertising has truly reached the point of no return. But you do feel oddly parched.'
+      ],
+    ],
+  };
 
   /**
    * Object type definitions with interaction data.
@@ -430,52 +905,52 @@
   var OBJ_TYPES = {
     CHEST: {
       name: 'chest',
-      message: 'You found a treasure chest! It glimmers with ancient gold.',
+      dialogueKey: 'chest',
       color: '#8a6a2a',
     },
     SIGN: {
       name: 'sign',
-      message: 'Welcome, adventurer! Danger lies ahead...',
+      dialogueKey: 'sign',
       color: '#6a5a3a',
     },
     ORB: {
       name: 'orb',
-      message: 'The orb pulses with mysterious energy!',
+      dialogueKey: 'orb',
       color: '#3ae8a0',
     },
     SWORD: {
       name: 'sword',
-      message: 'A legendary sword embedded in stone. You are not yet worthy.',
+      dialogueKey: 'sword',
       color: '#b0b0c0',
     },
     CRASHED_SHIP: {
       name: 'crashed_ship',
-      message: 'A crashed starship! Its hull still hums with residual power.',
+      dialogueKey: 'crashed_ship',
       color: '#6a7a8a',
     },
     CRYSTAL: {
       name: 'crystal',
-      message: 'Arcane crystals pulse with ancient magical energy.',
+      dialogueKey: 'crystal',
       color: '#8a4ae8',
     },
     TERMINAL: {
       name: 'terminal',
-      message: 'A computer terminal. The screen flickers: SYSTEM ONLINE...',
+      dialogueKey: 'terminal',
       color: '#3ae860',
     },
     PORTAL: {
       name: 'portal',
-      message: 'A shimmering portal between dimensions. Where does it lead?',
+      dialogueKey: 'portal',
       color: '#4ac8ff',
     },
     CAMPFIRE: {
       name: 'campfire',
-      message: 'A warm campfire crackles. Someone was here recently.',
+      dialogueKey: 'campfire',
       color: '#e8a43a',
     },
     TELESCOPE: {
       name: 'telescope',
-      message: 'A brass telescope pointed at the stars. Ancient and futuristic at once.',
+      dialogueKey: 'telescope',
       color: '#c0a040',
     },
   };
@@ -532,13 +1007,13 @@
    * Trigger an interaction with a world object.
    */
   function interactWithObject(obj) {
-    interactionEffect = {
-      text: obj.type.message,
-      x: obj.tileX * DRAWN_TILE + DRAWN_TILE / 2,
-      y: obj.tileY * DRAWN_TILE - 10,
-      timer: 2500,
-      color: obj.type.color,
-    };
+    var key = obj.type.dialogueKey;
+    var dialogueSet = DIALOGUE[key];
+    if (dialogueSet && dialogueSet.length > 0) {
+      var pages = randomChoice(dialogueSet);
+      var speakerName = obj.type.name.replace(/_/g, ' ').toUpperCase();
+      openDialogue(pages, speakerName);
+    }
     obj.interactAnim = 300; // ms of bounce animation
   }
 
@@ -608,7 +1083,7 @@
   }
 
   /**
-   * Update world object animations and interaction effects each frame.
+   * Update world object animations and dialogue each frame.
    */
   function updateWorldObjects(dt) {
     // Update object interaction bounce animations
@@ -619,13 +1094,8 @@
       }
     }
 
-    // Update interaction effect timer
-    if (interactionEffect && interactionEffect.timer > 0) {
-      interactionEffect.timer -= dt;
-      if (interactionEffect.timer <= 0) {
-        interactionEffect = null;
-      }
-    }
+    // Update dialogue typewriter
+    updateDialogue(dt);
   }
 
   // ---------------------------------------------------------------------------
@@ -1027,72 +1497,7 @@
     ctx.fillRect(bx + 2 * SCALE, by + 5 * SCALE, 2 * SCALE, SCALE);
   }
 
-  /**
-   * Draw the interaction effect (message popup).
-   */
-  function drawInteractionEffect(ctx, effect) {
-    if (!effect || effect.timer <= 0) return;
-
-    var alpha = Math.min(1, effect.timer / 500);
-    var textScale = 2;
-    var maxCharsPerLine = 30;
-    var words = effect.text.split(' ');
-    var lines = [];
-    var currentLine = '';
-
-    for (var i = 0; i < words.length; i++) {
-      var testLine = currentLine.length > 0 ? currentLine + ' ' + words[i] : words[i];
-      if (testLine.length > maxCharsPerLine && currentLine.length > 0) {
-        lines.push(currentLine);
-        currentLine = words[i];
-      } else {
-        currentLine = testLine;
-      }
-    }
-    if (currentLine.length > 0) lines.push(currentLine);
-
-    // Calculate box dimensions
-    var maxWidth = 0;
-    for (var l = 0; l < lines.length; l++) {
-      var w = measurePixelText(lines[l], textScale);
-      if (w > maxWidth) maxWidth = w;
-    }
-    var lineHeight = 7 * textScale + 4;
-    var boxW = maxWidth + 20;
-    var boxH = lines.length * lineHeight + 16;
-    var boxX = Math.floor((canvas.width - boxW) / 2);
-    var boxY = canvas.height - boxH - 20;
-
-    // Box background
-    ctx.fillStyle = 'rgba(10, 26, 10, ' + (0.9 * alpha) + ')';
-    ctx.fillRect(boxX, boxY, boxW, boxH);
-
-    // Box border
-    ctx.fillStyle = 'rgba(106, 170, 58, ' + (0.8 * alpha) + ')';
-    ctx.fillRect(boxX, boxY, boxW, 2);
-    ctx.fillRect(boxX, boxY + boxH - 2, boxW, 2);
-    ctx.fillRect(boxX, boxY, 2, boxH);
-    ctx.fillRect(boxX + boxW - 2, boxY, 2, boxH);
-
-    // Corner accents
-    ctx.fillStyle = 'rgba(232, 212, 74, ' + (0.7 * alpha) + ')';
-    ctx.fillRect(boxX, boxY, 6, 2);
-    ctx.fillRect(boxX, boxY, 2, 6);
-    ctx.fillRect(boxX + boxW - 6, boxY, 6, 2);
-    ctx.fillRect(boxX + boxW - 2, boxY, 2, 6);
-    ctx.fillRect(boxX, boxY + boxH - 2, 6, 2);
-    ctx.fillRect(boxX, boxY + boxH - 6, 2, 6);
-    ctx.fillRect(boxX + boxW - 6, boxY + boxH - 2, 6, 2);
-    ctx.fillRect(boxX + boxW - 2, boxY + boxH - 6, 2, 6);
-
-    // Draw text lines
-    for (var l = 0; l < lines.length; l++) {
-      var tw = measurePixelText(lines[l], textScale);
-      var tx = boxX + Math.floor((boxW - tw) / 2);
-      var ty = boxY + 10 + l * lineHeight;
-      drawPixelText(ctx, lines[l], tx, ty, textScale, 'rgba(200, 230, 180, ' + alpha + ')');
-    }
-  }
+  // drawInteractionEffect removed -- replaced by drawDialogueBox
 
   // ---------------------------------------------------------------------------
   // Player Character
@@ -1357,6 +1762,15 @@
     ':': [0x00,0x36,0x36,0x00,0x00],
     ',': [0x00,0x80,0x60,0x00,0x00],
     '\'': [0x00,0x03,0x03,0x00,0x00],
+    '"': [0x00,0x03,0x00,0x03,0x00],
+    '(': [0x00,0x1C,0x22,0x41,0x00],
+    ')': [0x00,0x41,0x22,0x1C,0x00],
+    '/': [0x20,0x10,0x08,0x04,0x02],
+    '+': [0x08,0x08,0x3E,0x08,0x08],
+    '*': [0x14,0x08,0x3E,0x08,0x14],
+    '#': [0x14,0x7F,0x14,0x7F,0x14],
+    ';': [0x00,0x80,0x68,0x00,0x00],
+    '_': [0x40,0x40,0x40,0x40,0x40],
   };
 
   /**
@@ -1534,6 +1948,15 @@
       return;
     }
 
+    // When dialogue is active, spacebar/enter advances it; block all other input
+    if (dialogue.active && gameState === STATE.PLAYING) {
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        advanceDialogue();
+      }
+      return;
+    }
+
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].indexOf(e.key) !== -1) {
       e.preventDefault();
       keys[e.key] = true;
@@ -1595,6 +2018,9 @@
    * Update player state each frame.
    */
   function updatePlayer(dt) {
+    // Block movement while dialogue is active
+    if (dialogue.active) return;
+
     // If currently sliding to target, continue interpolation
     if (player.moving) {
       var dx = player.targetX - player.screenX;
@@ -1710,14 +2136,16 @@
     // Draw player on top
     drawPlayer(ctx, player.screenX, player.screenY, player.direction, player.walkFrame);
 
-    // Draw interaction indicator if player faces an interactable
-    var nearInteractable = getNearbyInteractable();
-    if (nearInteractable) {
-      drawInteractionIndicator(ctx, nearInteractable, titleTime);
+    // Draw interaction indicator if player faces an interactable (but not during dialogue)
+    if (!dialogue.active) {
+      var nearInteractable = getNearbyInteractable();
+      if (nearInteractable) {
+        drawInteractionIndicator(ctx, nearInteractable, titleTime);
+      }
     }
 
-    // Draw interaction effect popup
-    drawInteractionEffect(ctx, interactionEffect);
+    // Draw dialogue box
+    drawDialogueBox(ctx, titleTime);
   }
 
   // ---------------------------------------------------------------------------

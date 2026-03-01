@@ -1,5 +1,9 @@
 {
   "version": 3,
   "maxEntries": 50,
-  "entries": []
+  "entries": [
+    {"id": "dec-001", "timestamp": "2026-03-01T00:00:00.000Z", "feature": "feature-001", "decision": "Use 16px tiles at 3x scale for retro pixel look", "rationale": "48px drawn tiles give a chunky pixel-art aesthetic", "impact": "Sets visual baseline for all features"},
+    {"id": "dec-002", "timestamp": "2026-03-01T00:00:00.000Z", "feature": "feature-001", "decision": "Seeded PRNG (seed 42) for map generation", "rationale": "Deterministic map ensures consistent rendering across reloads", "impact": "Enables future features like saved positions"},
+    {"id": "dec-003", "timestamp": "2026-03-01T00:00:00.000Z", "feature": "feature-001", "decision": "IIFE pattern for engine.js", "rationale": "Keeps global scope clean, vanilla JS with no build tools", "impact": "Sets code pattern for all JS modules"}
+  ]
 }

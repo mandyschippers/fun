@@ -6,7 +6,7 @@
       "name": "Canvas game engine with tile map",
       "description": "HTML5 Canvas rendering engine with a tile-based map system, greenish background, and pixelated retro aesthetic",
       "priority": 1,
-      "status": "pending",
+      "status": "passing",
       "acceptanceCriteria": [
         {
           "scenario": "Canvas renders tile map",
@@ -31,10 +31,10 @@
         "lint": null,
         "typecheck": null
       },
-      "relatedFiles": [],
+      "relatedFiles": ["index.html", "js/engine.js"],
       "github": {
-        "issueNumber": null,
-        "prNumber": null,
+        "issueNumber": 1,
+        "prNumber": 2,
         "branch": "feature/feature-001"
       },
       "createdAt": "2026-03-01T00:00:00.000Z",
@@ -45,7 +45,7 @@
       "name": "Arrow-key character movement",
       "description": "A player character sprite that moves around the tile map using arrow keys, with collision boundaries",
       "priority": 2,
-      "status": "pending",
+      "status": "passing",
       "acceptanceCriteria": [
         {
           "scenario": "Character moves with arrow keys",
@@ -76,10 +76,10 @@
         "lint": null,
         "typecheck": null
       },
-      "relatedFiles": [],
+      "relatedFiles": ["js/engine.js"],
       "github": {
-        "issueNumber": null,
-        "prNumber": null,
+        "issueNumber": 3,
+        "prNumber": 4,
         "branch": "feature/feature-002"
       },
       "createdAt": "2026-03-01T00:00:00.000Z",
@@ -90,7 +90,7 @@
       "name": "Welcome to the Realm title screen",
       "description": "A retro-styled title/landing screen with 'Welcome to the Realm' text and a press-start prompt",
       "priority": 3,
-      "status": "pending",
+      "status": "passing",
       "acceptanceCriteria": [
         {
           "scenario": "Title screen displays on load",
@@ -115,10 +115,10 @@
         "lint": null,
         "typecheck": null
       },
-      "relatedFiles": [],
+      "relatedFiles": ["js/engine.js"],
       "github": {
-        "issueNumber": null,
-        "prNumber": null,
+        "issueNumber": 5,
+        "prNumber": 6,
         "branch": "feature/feature-003"
       },
       "createdAt": "2026-03-01T00:00:00.000Z",
@@ -129,7 +129,7 @@
       "name": "Interactive world objects",
       "description": "Placeable objects on the map that the player can walk up to and interact with via a button press",
       "priority": 4,
-      "status": "pending",
+      "status": "passing",
       "acceptanceCriteria": [
         {
           "scenario": "Objects are visible on the map",
@@ -160,10 +160,10 @@
         "lint": null,
         "typecheck": null
       },
-      "relatedFiles": [],
+      "relatedFiles": ["js/engine.js"],
       "github": {
-        "issueNumber": null,
-        "prNumber": null,
+        "issueNumber": 7,
+        "prNumber": 8,
         "branch": "feature/feature-004"
       },
       "createdAt": "2026-03-01T00:00:00.000Z",
@@ -174,7 +174,7 @@
       "name": "Fantasy + sci-fi themed world design",
       "description": "Themed tile art, objects, and environmental details blending fantasy and sci-fi elements",
       "priority": 5,
-      "status": "pending",
+      "status": "passing",
       "acceptanceCriteria": [
         {
           "scenario": "Mixed theme environment",
@@ -199,10 +199,10 @@
         "lint": null,
         "typecheck": null
       },
-      "relatedFiles": [],
+      "relatedFiles": ["js/engine.js"],
       "github": {
-        "issueNumber": null,
-        "prNumber": null,
+        "issueNumber": 9,
+        "prNumber": 10,
         "branch": "feature/feature-005"
       },
       "createdAt": "2026-03-01T00:00:00.000Z",
@@ -211,7 +211,7 @@
     {
       "id": "feature-006",
       "name": "Absurdist dialogue and interaction system",
-      "description": "A dialogue/text box system for NPC and object interactions featuring absurdist british comedy writing",
+      "description": "A dialogue/text box system for NPC and object interactions featuring dry British absurdist comedy writing with deadpan humor",
       "priority": 6,
       "status": "pending",
       "acceptanceCriteria": [
@@ -256,7 +256,7 @@
     {
       "id": "feature-007",
       "name": "Themed NPCs and interactive content",
-      "description": "Populate the world with funny NPCs and interactable items that reference favorite shows and absurdist humor",
+      "description": "Populate the world with funny NPCs and interactable items featuring dry British humor, deadpan absurdism, and pop culture references",
       "priority": 7,
       "status": "pending",
       "acceptanceCriteria": [
@@ -330,6 +330,96 @@
       },
       "createdAt": "2026-03-01T00:00:00.000Z",
       "updatedAt": "2026-03-01T00:00:00.000Z"
+    },
+    {
+      "id": "feature-009",
+      "name": "Scrolling camera with larger world map",
+      "description": "Expand the tile map to be much larger than the viewport and implement a camera that scrolls to follow the player character as they walk off-screen",
+      "priority": 9,
+      "status": "pending",
+      "acceptanceCriteria": [
+        {
+          "scenario": "World extends beyond the viewport",
+          "given": "The game world is loaded",
+          "when": "The full map dimensions are checked",
+          "then": "The world is at least 3x the viewport size in both dimensions"
+        },
+        {
+          "scenario": "Camera follows player",
+          "given": "The player is moving across the map",
+          "when": "The character approaches the edge of the visible area",
+          "then": "The camera smoothly scrolls to keep the player centered on screen"
+        },
+        {
+          "scenario": "Camera stops at world boundaries",
+          "given": "The player is near the edge of the world map",
+          "when": "The camera would need to show area beyond the map",
+          "then": "The camera stops scrolling and the player moves toward the screen edge instead"
+        }
+      ],
+      "prdMetadata": {
+        "section": "World",
+        "breakdown": "prd-20260301-v2"
+      },
+      "verification": {
+        "build": null,
+        "tests": null,
+        "lint": null,
+        "typecheck": null
+      },
+      "relatedFiles": [],
+      "github": {
+        "issueNumber": null,
+        "prNumber": null,
+        "branch": "feature/feature-009"
+      },
+      "createdAt": "2026-03-01T12:00:00.000Z",
+      "updatedAt": "2026-03-01T12:00:00.000Z"
+    },
+    {
+      "id": "feature-010",
+      "name": "Mouse cursor sparkle trail",
+      "description": "A decorative particle effect that follows the mouse cursor, emitting little stars or sparkles even though the mouse isn't used for gameplay",
+      "priority": 10,
+      "status": "pending",
+      "acceptanceCriteria": [
+        {
+          "scenario": "Sparkles follow the mouse",
+          "given": "The game is running and the mouse is over the canvas",
+          "when": "The user moves their mouse",
+          "then": "Small star/sparkle particles appear at the cursor position and trail behind it"
+        },
+        {
+          "scenario": "Particles fade and disappear",
+          "given": "Sparkle particles have been emitted",
+          "when": "A short time passes",
+          "then": "The particles fade out and are removed, keeping the screen clean"
+        },
+        {
+          "scenario": "No performance degradation",
+          "given": "The user is rapidly moving the mouse",
+          "when": "Many particles are on screen",
+          "then": "The game maintains smooth frame rate with no noticeable lag"
+        }
+      ],
+      "prdMetadata": {
+        "section": "Visual Flair",
+        "breakdown": "prd-20260301-v2"
+      },
+      "verification": {
+        "build": null,
+        "tests": null,
+        "lint": null,
+        "typecheck": null
+      },
+      "relatedFiles": [],
+      "github": {
+        "issueNumber": null,
+        "prNumber": null,
+        "branch": "feature/feature-010"
+      },
+      "createdAt": "2026-03-01T12:00:00.000Z",
+      "updatedAt": "2026-03-01T12:00:00.000Z"
     }
   ],
   "fixes": []

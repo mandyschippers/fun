@@ -1,9 +1,8 @@
 {
   "version": 1,
   "sourceType": "file",
-  "fetchedAt": "2026-03-01T00:00:00.000Z",
-  "sourceUrl": "./prd.md",
-  "hash": "prd-20260301",
-  "characterCount": 831,
-  "sections": 1
+  "fetchedAt": "2026-03-01T12:00:00.000Z",
+  "sourceUrl": "prd.md",
+  "characterCount": 756,
+  "sections": 2
 }

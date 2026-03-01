@@ -1,77 +1,54 @@
 {
   "version": 1,
-  "analyzedAt": "2026-03-01T00:00:00.000Z",
+  "analyzedAt": "2026-03-01T12:00:00.000Z",
   "product": {
     "businessGoals": [
-      "Create a memorable, entertaining personal website",
+      "Create an entertaining, interactive personal website",
       "Evoke 90s web nostalgia with modern tech",
-      "Express personality through interactive humor and pop culture references"
+      "Showcase personality through absurdist British comedy"
     ],
     "userPersonas": [
-      {
-        "name": "Curious Visitor",
-        "description": "Someone who lands on the site and is drawn in by the retro game aesthetic, explores for fun"
-      },
-      {
-        "name": "Fellow Nerd",
-        "description": "Fans of LOTR, Star Wars, Star Trek, or gaming culture who appreciate the references and humor"
-      }
+      "Casual web visitor who enjoys retro aesthetics and humor"
     ],
     "functionalRequirements": [
-      "R001: Top-down Zelda-style game view with tile-based world",
-      "R002: Arrow-key controlled character movement",
-      "R003: Greenish background with pixelated retro aesthetic",
-      "R004: Interactive objects scattered around the world",
-      "R005: 'Welcome to the Realm' landing/title screen",
-      "R006: Fantasy + sci-fi themed world elements",
-      "R007: Absurdist comedy via NPC dialogue, object interactions, and environmental gags",
-      "R008: 90s web nostalgia visual elements (hit counters, guestbook references, under construction signs, etc.)"
+      "R001: Canvas-based tile map rendering (DONE - feature-001)",
+      "R002: Arrow-key character movement with collision (DONE - feature-002)",
+      "R003: Title screen with 'Welcome to the Realm' (DONE - feature-003)",
+      "R004: Interactive world objects (DONE - feature-004)",
+      "R005: Fantasy + sci-fi themed world (DONE - feature-005)",
+      "R006: Absurdist dialogue system (PENDING - feature-006)",
+      "R007: Themed NPCs and content (PENDING - feature-007)",
+      "R008: 90s web nostalgia polish (PENDING - feature-008)",
+      "R009: Scrolling camera with larger world map (NEW)",
+      "R010: Mouse cursor particle trail / stars (NEW)",
+      "R011: British comedy tone across all content (MODIFICATION to 006/007)"
     ]
   },
   "architecture": {
     "feasibilityAssessment": [
-      "HTML5 Canvas or pixel-art CSS for rendering — Canvas preferred for game-like movement",
-      "Vanilla JS or lightweight framework (no heavy dependencies needed)",
-      "Tile-based map system for world layout",
-      "Sprite sheets for character and object animations",
-      "Simple collision detection for object interaction"
+      "Camera scrolling: Medium complexity - requires viewport offset tracking and map expansion",
+      "Mouse cursor trail: Low complexity - canvas particle system following mouse events",
+      "British comedy: Content/writing change, no architecture impact"
     ],
     "implementationOrder": [
-      "1. Canvas rendering engine + tile map",
-      "2. Character sprite + arrow key movement",
-      "3. Camera/viewport system",
-      "4. Interactive objects + collision detection",
-      "5. Title screen / landing page",
-      "6. NPC dialogue / interaction UI",
-      "7. Themed content (fantasy/scifi objects, humor)",
-      "8. 90s aesthetic polish (scanlines, pixel fonts, retro UI elements)"
+      "feature-009 (scrolling camera) - enables larger world needed for content",
+      "feature-010 (mouse cursor trail) - independent, can parallel anything",
+      "feature-006 (dialogue - already pending, update for British tone)",
+      "feature-007 (NPCs - already pending, update for British tone)",
+      "feature-008 (90s polish - already pending)"
     ],
-    "mvpFeatures": [
-      "feature-001: Canvas game engine with tile map",
-      "feature-002: Character movement",
-      "feature-003: Title screen",
-      "feature-004: Interactive objects"
-    ],
+    "mvpFeatures": ["feature-009", "feature-010"],
     "dependencies": {
-      "feature-002": ["feature-001"],
-      "feature-004": ["feature-001", "feature-002"],
-      "feature-005": ["feature-001"],
-      "feature-006": ["feature-004"],
-      "feature-007": ["feature-004", "feature-006"],
-      "feature-008": ["feature-001"]
+      "feature-009": ["feature-001", "feature-002"],
+      "feature-010": ["feature-001"]
     }
   },
   "qa": {
-    "verificationFramework": {
-      "strategy": "Manual browser testing + visual verification",
-      "environments": ["Modern browsers (Chrome, Firefox, Safari)"],
-      "performanceTargets": ["60fps canvas rendering", "< 2s initial load"]
-    },
+    "verificationFramework": "Manual browser testing",
     "edgeCases": [
-      "Character walking off-screen / out of bounds",
-      "Rapid key presses / multiple keys held",
-      "Window resize during gameplay",
-      "Mobile/touch devices (stretch goal)"
+      "Camera at world edge should stop scrolling",
+      "Particle trail performance on mobile/low-end devices",
+      "Mouse leaving canvas area should stop trail gracefully"
     ]
   }
 }
