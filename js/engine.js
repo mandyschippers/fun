@@ -122,6 +122,35 @@
   TILE_COLORS[TILE.METAL_FLOOR] = '#3a3a3a';
 
   // ---------------------------------------------------------------------------
+  // Camera / Viewport System
+  // ---------------------------------------------------------------------------
+
+  // Fixed world size — at least 3x a typical viewport in each dimension
+  var WORLD_COLS = 60;
+  var WORLD_ROWS = 45;
+
+  var camera = {
+    x: 0,   // pixel offset of top-left corner of viewport into the world
+    y: 0,
+  };
+
+  /**
+   * Update camera to follow the player, clamping at world boundaries.
+   */
+  function updateCamera() {
+    // Center camera on the player's world position
+    var targetCamX = player.screenX + DRAWN_TILE / 2 - canvas.width / 2;
+    var targetCamY = player.screenY + DRAWN_TILE / 2 - canvas.height / 2;
+
+    // Clamp to world boundaries
+    var maxCamX = WORLD_COLS * DRAWN_TILE - canvas.width;
+    var maxCamY = WORLD_ROWS * DRAWN_TILE - canvas.height;
+
+    camera.x = Math.max(0, Math.min(targetCamX, maxCamX));
+    camera.y = Math.max(0, Math.min(targetCamY, maxCamY));
+  }
+
+  // ---------------------------------------------------------------------------
   // Tile Map Generation
   // ---------------------------------------------------------------------------
 
@@ -1954,8 +1983,8 @@
    * Draw a world object at its tile position.
    */
   function drawWorldObject(ctx, obj, time) {
-    var sx = obj.tileX * DRAWN_TILE;
-    var sy = obj.tileY * DRAWN_TILE;
+    var sx = obj.tileX * DRAWN_TILE - camera.x;
+    var sy = obj.tileY * DRAWN_TILE - camera.y;
     var animOffset = 0;
 
     // Bounce animation on interaction
@@ -2002,8 +2031,8 @@
    * Draw interaction indicator ("!") above an interactable object the player faces.
    */
   function drawInteractionIndicator(ctx, obj, time) {
-    var sx = obj.tileX * DRAWN_TILE;
-    var sy = obj.tileY * DRAWN_TILE;
+    var sx = obj.tileX * DRAWN_TILE - camera.x;
+    var sy = obj.tileY * DRAWN_TILE - camera.y;
     var bob = Math.sin(time * 0.006) * SCALE * 1.5;
     var pulse = Math.sin(time * 0.004) * 0.3 + 0.7;
 
@@ -2600,41 +2629,27 @@
   }
 
   /**
-   * Resize canvas to fill the viewport and regenerate the map.
+   * Resize canvas to fill the viewport and update camera bounds.
+   * The map is generated once at boot, NOT on resize.
    */
   var tileMap = [];
-  var mapCols = 0;
-  var mapRows = 0;
+  var mapCols = WORLD_COLS;
+  var mapRows = WORLD_ROWS;
+  var mapInitialized = false;
 
   function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     disableSmoothing();
 
-    mapCols = Math.ceil(canvas.width / DRAWN_TILE) + 1;
-    mapRows = Math.ceil(canvas.height / DRAWN_TILE) + 1;
-    tileMap = generateTileMap(mapCols, mapRows);
-
-    // Re-place player if needed (ensure they stay in bounds)
-    if (player.tileX >= mapCols || player.tileY >= mapRows) {
-      var spawn = findSpawnPosition();
-      player.tileX = spawn.x;
-      player.tileY = spawn.y;
+    // Generate the map only once
+    if (!mapInitialized) {
+      tileMap = generateTileMap(mapCols, mapRows);
+      mapInitialized = true;
     }
-    // Ensure player is not on a solid tile after resize
-    if (isSolidTile(tileMap[player.tileY][player.tileX])) {
-      var spawn = findSpawnPosition();
-      player.tileX = spawn.x;
-      player.tileY = spawn.y;
-    }
-    player.screenX = player.tileX * DRAWN_TILE;
-    player.screenY = player.tileY * DRAWN_TILE;
-    player.targetX = player.screenX;
-    player.targetY = player.screenY;
-    player.moving = false;
 
-    // Place interactive objects on valid tiles
-    placeWorldObjects();
+    // Update camera to reflect new viewport size
+    updateCamera();
   }
 
   /**
@@ -2645,20 +2660,34 @@
     ctx.fillStyle = '#0a1a0a';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw tiles
-    for (var y = 0; y < mapRows; y++) {
-      for (var x = 0; x < mapCols; x++) {
-        drawTile(ctx, tileMap[y][x], x * DRAWN_TILE, y * DRAWN_TILE);
+    // Calculate visible tile range (with 1-tile margin for smooth scrolling)
+    var startCol = Math.max(0, Math.floor(camera.x / DRAWN_TILE) - 1);
+    var endCol = Math.min(mapCols, Math.ceil((camera.x + canvas.width) / DRAWN_TILE) + 1);
+    var startRow = Math.max(0, Math.floor(camera.y / DRAWN_TILE) - 1);
+    var endRow = Math.min(mapRows, Math.ceil((camera.y + canvas.height) / DRAWN_TILE) + 1);
+
+    // Draw only visible tiles
+    for (var y = startRow; y < endRow; y++) {
+      for (var x = startCol; x < endCol; x++) {
+        drawTile(ctx, tileMap[y][x], x * DRAWN_TILE - camera.x, y * DRAWN_TILE - camera.y);
       }
     }
 
-    // Draw world objects
+    // Draw world objects (only if visible)
     for (var oi = 0; oi < worldObjects.length; oi++) {
-      drawWorldObject(ctx, worldObjects[oi], titleTime);
+      var obj = worldObjects[oi];
+      var objScreenX = obj.tileX * DRAWN_TILE - camera.x;
+      var objScreenY = obj.tileY * DRAWN_TILE - camera.y;
+      if (objScreenX > -DRAWN_TILE && objScreenX < canvas.width + DRAWN_TILE &&
+          objScreenY > -DRAWN_TILE && objScreenY < canvas.height + DRAWN_TILE) {
+        drawWorldObject(ctx, obj, titleTime);
+      }
     }
 
-    // Draw player on top
-    drawPlayer(ctx, player.screenX, player.screenY, player.direction, player.walkFrame);
+    // Draw player on top (world coords offset by camera)
+    var playerScreenX = player.screenX - camera.x;
+    var playerScreenY = player.screenY - camera.y;
+    drawPlayer(ctx, playerScreenX, playerScreenY, player.direction, player.walkFrame);
 
     // Draw interaction indicator if player faces an interactable (but not during dialogue)
     if (!dialogue.active) {
@@ -2668,7 +2697,7 @@
       }
     }
 
-    // Draw dialogue box
+    // Draw dialogue box (in screen space, not world space)
     drawDialogueBox(ctx, titleTime);
   }
 
@@ -2695,6 +2724,7 @@
 
       // Render the game world underneath
       updatePlayer(dt);
+      updateCamera();
       updateWorldObjects(dt);
       render();
 
@@ -2708,6 +2738,7 @@
       }
     } else {
       updatePlayer(dt);
+      updateCamera();
       updateWorldObjects(dt);
       render();
     }
@@ -2723,6 +2754,7 @@
     resize();
   });
 
+  // Generate the map once at boot (resize will set mapInitialized)
   resize();
 
   // Initialize title screen stars
@@ -2736,6 +2768,12 @@
   player.screenY = spawn.y * DRAWN_TILE;
   player.targetX = player.screenX;
   player.targetY = player.screenY;
+
+  // Place interactive objects on valid tiles (once, after map generation)
+  placeWorldObjects();
+
+  // Initialize camera position
+  updateCamera();
 
   // Start the game loop
   requestAnimationFrame(function (timestamp) {
