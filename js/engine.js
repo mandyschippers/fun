@@ -1089,6 +1089,33 @@
         '"That last one is a feature request, apparently. Product says they will look at it in Q7. There is no Q7."'
       ],
     ],
+    landing_bay: [
+      [
+        '"Welcome to Docking Bay 94. Or is it 97? The council keeps changing the numbers to confuse Imperial auditors."',
+        '"Anyway, fancy a game of Snake? It is the only entertainment we have got since the holochess board went missing."',
+        '"The Wookiee ate it. Nobody talks about it. Press SPACE if you want to play."'
+      ],
+      [
+        '"Right then. This is the landing bay. Do not touch anything. Actually, do touch something."',
+        '"There is a rather addictive Snake game on that console over there. Last pilot got so hooked she forgot to refuel and drifted into an asteroid."',
+        '"Totally worth it, she said. From the escape pod. Anyway. SPACE to have a go."'
+      ],
+      [
+        '"Ah, a visitor. Wonderful. We have not had one since the docking clamps jammed and that freighter just... stayed."',
+        '"While you wait for absolutely nothing to happen, might I suggest the Snake game? It is shockingly good for software written by a droid with one arm."',
+        '"The high score is held by a mouse. An actual mouse. It walked across the controls. SPACE to try and beat it."'
+      ],
+      [
+        '"Landing Bay operational. Well, mostly. The left thruster vent is actually a sandwich toaster now. Long story."',
+        '"But the important thing is: we have Snake. The game, not the reptile. Although we did have a reptile once. That is the long story."',
+        '"Management said we needed entertainment. We got Snake. Then the snake ate the entertainment budget. SPACE to play."'
+      ],
+      [
+        '"Status report: fuel levels nominal, landing gear functional, crew morale entirely dependent on a Snake game."',
+        '"Seriously. If that console breaks, this whole operation falls apart. The mechanics will not fix anything until they beat level twelve."',
+        '"I have seen things you would not believe. A pilot crying over a game over screen. SPACE to understand why."'
+      ],
+    ],
   };
 
   /**
@@ -1176,6 +1203,12 @@
       dialogueKey: 'npc_bard',
       color: '#aa8a3a',
     },
+    // --- Minigame Entry Points ---
+    LANDING_BAY: {
+      name: 'landing_bay',
+      dialogueKey: 'landing_bay',
+      color: '#4a5a6a',
+    },
   };
 
   /**
@@ -1238,6 +1271,10 @@
       openDialogue(pages, speakerName);
     }
     obj.interactAnim = 300; // ms of bounce animation
+    // Mark minigame entry points for feature-012 transition handling
+    if (obj.type === OBJ_TYPES.LANDING_BAY) {
+      obj.isMinigameEntry = true;
+    }
   }
 
   /**
@@ -1277,7 +1314,8 @@
       OBJ_TYPES.CRASHED_SHIP, OBJ_TYPES.CRYSTAL, OBJ_TYPES.TERMINAL,
       OBJ_TYPES.PORTAL, OBJ_TYPES.CAMPFIRE, OBJ_TYPES.TELESCOPE,
       OBJ_TYPES.NPC_WIZARD, OBJ_TYPES.NPC_KNIGHT, OBJ_TYPES.NPC_ELF,
-      OBJ_TYPES.NPC_ROBOT, OBJ_TYPES.NPC_CAPTAIN, OBJ_TYPES.NPC_BARD
+      OBJ_TYPES.NPC_ROBOT, OBJ_TYPES.NPC_CAPTAIN, OBJ_TYPES.NPC_BARD,
+      OBJ_TYPES.LANDING_BAY
     ];
     var placed = 0;
     var minSpacing = 3;
@@ -1980,6 +2018,75 @@
   }
 
   /**
+   * Draw sci-fi landing bay / hangar sprite.
+   */
+  function drawLandingBay(ctx, sx, sy, animOffset, time) {
+    var px = SCALE;
+    var ay = animOffset || 0;
+    var t = time || 0;
+    var blink = Math.sin(t * 0.005) > 0 ? 1 : 0.3;
+    var blink2 = Math.sin(t * 0.005 + Math.PI) > 0 ? 1 : 0.3;
+    var pulse = Math.sin(t * 0.003) * 0.3 + 0.7;
+
+    // Metal floor base
+    ctx.fillStyle = '#5a5a6a';
+    ctx.fillRect(sx + px, sy + 11 * px + ay, 14 * px, 4 * px);
+    ctx.fillStyle = '#4a4a5a';
+    ctx.fillRect(sx + 2 * px, sy + 12 * px + ay, 12 * px, 2 * px);
+
+    // Landing pad markings (yellow chevrons)
+    ctx.fillStyle = '#8a8a3a';
+    ctx.fillRect(sx + 3 * px, sy + 13 * px + ay, 2 * px, px);
+    ctx.fillRect(sx + 7 * px, sy + 13 * px + ay, 2 * px, px);
+    ctx.fillRect(sx + 11 * px, sy + 13 * px + ay, 2 * px, px);
+
+    // Tech panels (left side)
+    ctx.fillStyle = '#3a3a4a';
+    ctx.fillRect(sx, sy + 4 * px + ay, 3 * px, 8 * px);
+    ctx.fillStyle = '#2a2a3a';
+    ctx.fillRect(sx + px, sy + 5 * px + ay, px, 2 * px);
+    // Panel light
+    ctx.fillStyle = 'rgba(60, 200, 255, ' + (0.6 * pulse) + ')';
+    ctx.fillRect(sx + px, sy + 8 * px + ay, px, px);
+
+    // Tech panels (right side)
+    ctx.fillStyle = '#3a3a4a';
+    ctx.fillRect(sx + 13 * px, sy + 4 * px + ay, 3 * px, 8 * px);
+    ctx.fillStyle = '#2a2a3a';
+    ctx.fillRect(sx + 14 * px, sy + 5 * px + ay, px, 2 * px);
+    // Panel light
+    ctx.fillStyle = 'rgba(255, 100, 60, ' + (0.6 * pulse) + ')';
+    ctx.fillRect(sx + 14 * px, sy + 8 * px + ay, px, px);
+
+    // Landing lights (blinking yellow/orange)
+    ctx.fillStyle = 'rgba(255, 200, 60, ' + blink + ')';
+    ctx.fillRect(sx + 2 * px, sy + 11 * px + ay, px, px);
+    ctx.fillRect(sx + 13 * px, sy + 11 * px + ay, px, px);
+    ctx.fillStyle = 'rgba(255, 140, 40, ' + blink2 + ')';
+    ctx.fillRect(sx + 5 * px, sy + 11 * px + ay, px, px);
+    ctx.fillRect(sx + 10 * px, sy + 11 * px + ay, px, px);
+
+    // Small ship silhouette on pad
+    ctx.fillStyle = '#3a4a5a';
+    ctx.fillRect(sx + 5 * px, sy + 5 * px + ay, 6 * px, 4 * px);
+    ctx.fillStyle = '#2a3a4a';
+    ctx.fillRect(sx + 7 * px, sy + 3 * px + ay, 2 * px, 2 * px); // cockpit
+    ctx.fillRect(sx + 4 * px, sy + 7 * px + ay, 2 * px, 2 * px); // left wing
+    ctx.fillRect(sx + 10 * px, sy + 7 * px + ay, 2 * px, 2 * px); // right wing
+    // Engine glow
+    ctx.fillStyle = 'rgba(80, 180, 255, ' + (0.4 * pulse) + ')';
+    ctx.fillRect(sx + 6 * px, sy + 9 * px + ay, px, px);
+    ctx.fillRect(sx + 9 * px, sy + 9 * px + ay, px, px);
+
+    // Top frame / hangar entrance
+    ctx.fillStyle = '#3a3a4a';
+    ctx.fillRect(sx + px, sy + 2 * px + ay, 14 * px, 2 * px);
+    // Hangar sign light
+    ctx.fillStyle = 'rgba(255, 255, 200, ' + blink + ')';
+    ctx.fillRect(sx + 7 * px, sy + 2 * px + ay, 2 * px, px);
+  }
+
+  /**
    * Draw a world object at its tile position.
    */
   function drawWorldObject(ctx, obj, time) {
@@ -2024,6 +2131,8 @@
       drawNpcCaptain(ctx, sx, sy, animOffset, time);
     } else if (obj.type === OBJ_TYPES.NPC_BARD) {
       drawNpcBard(ctx, sx, sy, animOffset, time);
+    } else if (obj.type === OBJ_TYPES.LANDING_BAY) {
+      drawLandingBay(ctx, sx, sy, animOffset, time);
     }
   }
 
