@@ -465,6 +465,7 @@
     charSpeed: 35,     // ms per character
     fullyRevealed: false,
     speakerName: '',   // optional speaker name at top of box
+    sourceObj: null,   // object that triggered the dialogue
   };
 
   /**
@@ -499,6 +500,12 @@
     } else {
       // Close dialogue
       dialogue.active = false;
+      // Transition to Snake mini-game if source was a minigame entry
+      if (dialogue.sourceObj && dialogue.sourceObj.isMinigameEntry) {
+        initSnake();
+        gameState = STATE.SNAKE;
+        dialogue.sourceObj = null;
+      }
     }
   }
 
@@ -1263,6 +1270,7 @@
    * Trigger an interaction with a world object.
    */
   function interactWithObject(obj) {
+    dialogue.sourceObj = obj;
     var key = obj.type.dialogueKey;
     var dialogueSet = DIALOGUE[key];
     if (dialogueSet && dialogueSet.length > 0) {
@@ -2285,7 +2293,7 @@
   // Game State
   // ---------------------------------------------------------------------------
 
-  var STATE = { TITLE: 0, TRANSITION: 1, PLAYING: 2 };
+  var STATE = { TITLE: 0, TRANSITION: 1, PLAYING: 2, SNAKE: 3 };
   var gameState = STATE.TITLE;
   var titleAlpha = 1;          // Used for fade-out transition
   var transitionTimer = 0;
@@ -2613,6 +2621,35 @@
       return;
     }
 
+    // Snake mini-game controls
+    if (gameState === STATE.SNAKE) {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].indexOf(e.key) !== -1) {
+        e.preventDefault();
+      }
+      if (!snake.gameOver) {
+        // Direction controls (prevent 180-degree turns)
+        if (e.key === 'ArrowUp' && snake.direction !== 'DOWN') snake.nextDirection = 'UP';
+        else if (e.key === 'ArrowDown' && snake.direction !== 'UP') snake.nextDirection = 'DOWN';
+        else if (e.key === 'ArrowLeft' && snake.direction !== 'RIGHT') snake.nextDirection = 'LEFT';
+        else if (e.key === 'ArrowRight' && snake.direction !== 'LEFT') snake.nextDirection = 'RIGHT';
+        // Escape returns to overworld
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          gameState = STATE.PLAYING;
+        }
+      } else {
+        // Game over controls
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          initSnake();
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          gameState = STATE.PLAYING;
+        }
+      }
+      return;
+    }
+
     // When dialogue is active, spacebar/enter advances it; block all other input
     if (dialogue.active && gameState === STATE.PLAYING) {
       if (e.key === ' ' || e.key === 'Enter') {
@@ -2908,6 +2945,435 @@
   }
 
   // ---------------------------------------------------------------------------
+  // Snake Mini-Game (Star Wars themed)
+  // ---------------------------------------------------------------------------
+
+  var snake = {
+    body: [],
+    direction: 'RIGHT',
+    nextDirection: 'RIGHT',
+    food: null,
+    score: 0,
+    gameOver: false,
+    speed: 150,
+    moveTimer: 0,
+    gridW: 20,
+    gridH: 15,
+    cellSize: 0,
+    offsetX: 0,
+    offsetY: 0,
+    messages: [],
+    messageTimer: 0,
+    currentMessage: '',
+    highScore: 0,
+    stars: [],
+    starsTwinkleTimer: 0,
+  };
+
+  var SNAKE_EAT_MESSAGES = [
+    "A fine addition to my collection. Wait, wrong franchise.",
+    "The Force is strong with this one. The snake, I mean. Not you.",
+    "That's no moon. Oh wait, it's a TIE fighter. Never mind.",
+    "Do or do not. There is no... actually, you just did.",
+    "I've got a bad feeling about this. The snake's getting rather long.",
+    "Impressive. Most impressive. Though health and safety wouldn't approve.",
+    "TIE fighter consumed. The pilot has filed a complaint with HR.",
+    "Your Midichlorian count just went up. Not sure that's how it works.",
+    "Another one bites the space dust. Brilliant.",
+    "The Rebel Alliance commends your appetite, if not your table manners.",
+    "That TIE fighter had a family. Well, probably not. They're mass produced.",
+    "Right then. One more imperial asset destroyed. Carry on.",
+  ];
+
+  var SNAKE_GAME_OVER_MESSAGES = [
+    "The Empire sends its regards, mate.",
+    "You were the chosen one! Well, clearly not.",
+    "I find your lack of skill disturbing.",
+    "That's it? My nan could do better, and she's a Sith Lord.",
+    "Game over. The Rebel Alliance is deeply disappointed.",
+    "You flew into a wall. The Death Star didn't even need to fire.",
+    "Right. Brilliant flying there. Truly inspired.",
+    "The Force was not with you. It was having a tea break.",
+  ];
+
+  var SNAKE_START_MESSAGES = [
+    "Right then, off you go. Try not to crash into yourself.",
+    "May the Force be with you. You'll need it, frankly.",
+    "Engage hypersnake. That's not a thing but here we are.",
+    "Red Five standing by. Well, slithering by.",
+  ];
+
+  function initSnake() {
+    var w = canvas.width;
+    var h = canvas.height;
+    var cellW = Math.floor(w / (snake.gridW + 4));
+    var cellH = Math.floor((h - 60) / (snake.gridH + 2));
+    snake.cellSize = Math.min(cellW, cellH);
+    snake.offsetX = Math.floor((w - snake.gridW * snake.cellSize) / 2);
+    snake.offsetY = 50;
+
+    snake.body = [];
+    var startX = Math.floor(snake.gridW / 2);
+    var startY = Math.floor(snake.gridH / 2);
+    for (var i = 2; i >= 0; i--) {
+      snake.body.push({ x: startX - i, y: startY });
+    }
+
+    snake.direction = 'RIGHT';
+    snake.nextDirection = 'RIGHT';
+    snake.score = 0;
+    snake.gameOver = false;
+    snake.speed = 150;
+    snake.moveTimer = 0;
+    snake.messageTimer = 0;
+    snake.currentMessage = SNAKE_START_MESSAGES[Math.floor(Math.random() * SNAKE_START_MESSAGES.length)];
+
+    // Generate background stars
+    snake.stars = [];
+    for (var s = 0; s < 120; s++) {
+      snake.stars.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        size: Math.random() * 2 + 0.5,
+        brightness: Math.random(),
+        twinkleSpeed: Math.random() * 0.005 + 0.001,
+      });
+    }
+    snake.starsTwinkleTimer = 0;
+
+    placeSnakeFood();
+  }
+
+  function placeSnakeFood() {
+    var attempts = 0;
+    while (attempts < 500) {
+      var fx = Math.floor(Math.random() * snake.gridW);
+      var fy = Math.floor(Math.random() * snake.gridH);
+      var onSnake = false;
+      for (var i = 0; i < snake.body.length; i++) {
+        if (snake.body[i].x === fx && snake.body[i].y === fy) {
+          onSnake = true;
+          break;
+        }
+      }
+      if (!onSnake) {
+        snake.food = { x: fx, y: fy };
+        return;
+      }
+      attempts++;
+    }
+    // Fallback: place anywhere
+    snake.food = { x: 0, y: 0 };
+  }
+
+  function updateSnake(dt) {
+    if (snake.gameOver) return;
+
+    snake.starsTwinkleTimer += dt;
+
+    // Message fade timer
+    if (snake.messageTimer > 0) {
+      snake.messageTimer -= dt;
+      if (snake.messageTimer <= 0) {
+        snake.currentMessage = '';
+      }
+    }
+
+    snake.moveTimer += dt;
+    if (snake.moveTimer < snake.speed) return;
+    snake.moveTimer = 0;
+
+    // Apply buffered direction
+    snake.direction = snake.nextDirection;
+
+    // Calculate new head position
+    var head = snake.body[snake.body.length - 1];
+    var newHead = { x: head.x, y: head.y };
+    if (snake.direction === 'UP') newHead.y--;
+    else if (snake.direction === 'DOWN') newHead.y++;
+    else if (snake.direction === 'LEFT') newHead.x--;
+    else if (snake.direction === 'RIGHT') newHead.x++;
+
+    // Wall collision
+    if (newHead.x < 0 || newHead.x >= snake.gridW || newHead.y < 0 || newHead.y >= snake.gridH) {
+      snake.gameOver = true;
+      snake.currentMessage = SNAKE_GAME_OVER_MESSAGES[Math.floor(Math.random() * SNAKE_GAME_OVER_MESSAGES.length)];
+      if (snake.score > snake.highScore) snake.highScore = snake.score;
+      return;
+    }
+
+    // Self collision
+    for (var i = 0; i < snake.body.length; i++) {
+      if (snake.body[i].x === newHead.x && snake.body[i].y === newHead.y) {
+        snake.gameOver = true;
+        snake.currentMessage = SNAKE_GAME_OVER_MESSAGES[Math.floor(Math.random() * SNAKE_GAME_OVER_MESSAGES.length)];
+        if (snake.score > snake.highScore) snake.highScore = snake.score;
+        return;
+      }
+    }
+
+    // Add new head
+    snake.body.push(newHead);
+
+    // Food collision
+    if (snake.food && newHead.x === snake.food.x && newHead.y === snake.food.y) {
+      snake.score += 10;
+      snake.currentMessage = SNAKE_EAT_MESSAGES[Math.floor(Math.random() * SNAKE_EAT_MESSAGES.length)];
+      snake.messageTimer = 3000;
+      placeSnakeFood();
+      // Speed up slightly
+      if (snake.speed > 70) {
+        snake.speed -= 3;
+      }
+    } else {
+      // Remove tail if not eating
+      snake.body.shift();
+    }
+  }
+
+  function renderSnake() {
+    var w = canvas.width;
+    var h = canvas.height;
+    var cs = snake.cellSize;
+
+    // Space background
+    ctx.fillStyle = '#0a0a1a';
+    ctx.fillRect(0, 0, w, h);
+
+    // Draw twinkling stars
+    for (var s = 0; s < snake.stars.length; s++) {
+      var star = snake.stars[s];
+      var twinkle = Math.sin(snake.starsTwinkleTimer * star.twinkleSpeed + star.brightness * 100) * 0.4 + 0.6;
+      var alpha = star.brightness * twinkle;
+      ctx.fillStyle = 'rgba(255, 255, 255, ' + alpha + ')';
+      ctx.fillRect(Math.floor(star.x), Math.floor(star.y), Math.ceil(star.size), Math.ceil(star.size));
+    }
+
+    // Draw grid area background
+    ctx.fillStyle = 'rgba(20, 20, 50, 0.6)';
+    ctx.fillRect(snake.offsetX, snake.offsetY, snake.gridW * cs, snake.gridH * cs);
+
+    // Subtle grid lines
+    ctx.strokeStyle = 'rgba(60, 60, 100, 0.3)';
+    ctx.lineWidth = 1;
+    for (var gx = 0; gx <= snake.gridW; gx++) {
+      ctx.beginPath();
+      ctx.moveTo(snake.offsetX + gx * cs, snake.offsetY);
+      ctx.lineTo(snake.offsetX + gx * cs, snake.offsetY + snake.gridH * cs);
+      ctx.stroke();
+    }
+    for (var gy = 0; gy <= snake.gridH; gy++) {
+      ctx.beginPath();
+      ctx.moveTo(snake.offsetX, snake.offsetY + gy * cs);
+      ctx.lineTo(snake.offsetX + snake.gridW * cs, snake.offsetY + gy * cs);
+      ctx.stroke();
+    }
+
+    // Grid border
+    ctx.strokeStyle = 'rgba(100, 140, 200, 0.5)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(snake.offsetX, snake.offsetY, snake.gridW * cs, snake.gridH * cs);
+
+    // Draw snake body
+    for (var i = 0; i < snake.body.length; i++) {
+      var seg = snake.body[i];
+      var sx = snake.offsetX + seg.x * cs;
+      var sy = snake.offsetY + seg.y * cs;
+      var isHead = (i === snake.body.length - 1);
+
+      if (isHead) {
+        drawXwingHead(sx, sy, cs, snake.direction);
+      } else {
+        // Body segments: alternating greens
+        var shade = (i % 2 === 0) ? '#4a8a2a' : '#5ca63a';
+        ctx.fillStyle = shade;
+        ctx.fillRect(sx + 2, sy + 2, cs - 4, cs - 4);
+        // Engine glow
+        ctx.fillStyle = 'rgba(100, 200, 100, 0.3)';
+        ctx.fillRect(sx + 4, sy + 4, cs - 8, cs - 8);
+      }
+    }
+
+    // Draw food (TIE fighter)
+    if (snake.food) {
+      var fx = snake.offsetX + snake.food.x * cs;
+      var fy = snake.offsetY + snake.food.y * cs;
+      drawTieFighter(fx, fy, cs);
+    }
+
+    // Score display
+    var scoreText = 'SCORE: ' + snake.score;
+    drawPixelText(ctx, scoreText, snake.offsetX, 15, 2, '#00ccff');
+    if (snake.highScore > 0) {
+      var hiText = 'HI: ' + snake.highScore;
+      var hiWidth = measurePixelText(hiText, 2);
+      drawPixelText(ctx, hiText, snake.offsetX + snake.gridW * cs - hiWidth, 15, 2, '#888888');
+    }
+
+    // Humorous message
+    if (snake.currentMessage && !snake.gameOver) {
+      var msgScale = 1;
+      var msgWidth = measurePixelText(snake.currentMessage, msgScale);
+      var msgX = Math.floor((w - msgWidth) / 2);
+      var msgY = snake.offsetY + snake.gridH * cs + 15;
+      var msgAlpha = snake.messageTimer > 500 ? 1 : (snake.messageTimer / 500);
+      ctx.globalAlpha = msgAlpha;
+      drawPixelText(ctx, snake.currentMessage, msgX, msgY, msgScale, '#ffcc00');
+      ctx.globalAlpha = 1;
+    }
+
+    // ESC hint
+    var escText = 'ESC TO RETURN';
+    var escWidth = measurePixelText(escText, 1);
+    drawPixelText(ctx, escText, w - escWidth - 10, h - 15, 1, 'rgba(100, 100, 140, 0.6)');
+
+    // Draw cursor sparkles on top
+    drawCursorParticles();
+  }
+
+  function drawXwingHead(x, y, cs, dir) {
+    var px = Math.max(1, Math.floor(cs / 12));
+    var cx = x + cs / 2;
+    var cy = y + cs / 2;
+    var halfCs = cs / 2;
+
+    // Body (gray-white)
+    ctx.fillStyle = '#ccccdd';
+    if (dir === 'RIGHT') {
+      // Pointed nose right
+      ctx.fillRect(x + 3 * px, cy - 2 * px, cs - 5 * px, 4 * px);
+      ctx.fillRect(x + cs - 3 * px, cy - px, 2 * px, 2 * px);
+      // Wings (top and bottom)
+      ctx.fillStyle = '#888899';
+      ctx.fillRect(x + 2 * px, y + px, 3 * px, cs - 2 * px);
+      // Red markings
+      ctx.fillStyle = '#cc3333';
+      ctx.fillRect(x + 2 * px, y + px, px, cs - 2 * px);
+    } else if (dir === 'LEFT') {
+      ctx.fillRect(x + 2 * px, cy - 2 * px, cs - 5 * px, 4 * px);
+      ctx.fillRect(x + px, cy - px, 2 * px, 2 * px);
+      ctx.fillStyle = '#888899';
+      ctx.fillRect(x + cs - 5 * px, y + px, 3 * px, cs - 2 * px);
+      ctx.fillStyle = '#cc3333';
+      ctx.fillRect(x + cs - 3 * px, y + px, px, cs - 2 * px);
+    } else if (dir === 'UP') {
+      ctx.fillRect(cx - 2 * px, y + 2 * px, 4 * px, cs - 5 * px);
+      ctx.fillRect(cx - px, y + px, 2 * px, 2 * px);
+      ctx.fillStyle = '#888899';
+      ctx.fillRect(x + px, y + cs - 5 * px, cs - 2 * px, 3 * px);
+      ctx.fillStyle = '#cc3333';
+      ctx.fillRect(x + px, y + cs - 3 * px, cs - 2 * px, px);
+    } else { // DOWN
+      ctx.fillRect(cx - 2 * px, y + 3 * px, 4 * px, cs - 5 * px);
+      ctx.fillRect(cx - px, y + cs - 3 * px, 2 * px, 2 * px);
+      ctx.fillStyle = '#888899';
+      ctx.fillRect(x + px, y + 2 * px, cs - 2 * px, 3 * px);
+      ctx.fillStyle = '#cc3333';
+      ctx.fillRect(x + px, y + 2 * px, cs - 2 * px, px);
+    }
+
+    // Engine glow
+    ctx.fillStyle = 'rgba(100, 150, 255, 0.6)';
+    if (dir === 'RIGHT') ctx.fillRect(x + px, cy - px, 2 * px, 2 * px);
+    else if (dir === 'LEFT') ctx.fillRect(x + cs - 3 * px, cy - px, 2 * px, 2 * px);
+    else if (dir === 'UP') ctx.fillRect(cx - px, y + cs - 3 * px, 2 * px, 2 * px);
+    else ctx.fillRect(cx - px, y + px, 2 * px, 2 * px);
+  }
+
+  function drawTieFighter(x, y, cs) {
+    var px = Math.max(1, Math.floor(cs / 12));
+    var cx = x + cs / 2;
+    var cy = y + cs / 2;
+
+    // Wing panels (left and right vertical bars)
+    ctx.fillStyle = '#667788';
+    ctx.fillRect(x + px, y + px, 3 * px, cs - 2 * px);
+    ctx.fillRect(x + cs - 4 * px, y + px, 3 * px, cs - 2 * px);
+
+    // Wing panel edge highlights
+    ctx.fillStyle = '#556677';
+    ctx.fillRect(x + px, y + px, px, cs - 2 * px);
+    ctx.fillRect(x + cs - 2 * px, y + px, px, cs - 2 * px);
+
+    // Struts connecting cockpit to wings
+    ctx.fillStyle = '#778899';
+    ctx.fillRect(x + 4 * px, cy - px, cs - 8 * px, 2 * px);
+
+    // Central cockpit (hexagonal-ish shape)
+    ctx.fillStyle = '#8899aa';
+    ctx.fillRect(cx - 2 * px, cy - 3 * px, 4 * px, 6 * px);
+    ctx.fillRect(cx - 3 * px, cy - 2 * px, 6 * px, 4 * px);
+
+    // Cockpit window
+    ctx.fillStyle = '#334455';
+    ctx.fillRect(cx - px, cy - px, 2 * px, 2 * px);
+
+    // Subtle red glow for menace
+    ctx.fillStyle = 'rgba(255, 50, 50, 0.3)';
+    ctx.fillRect(cx - px, cy - px, 2 * px, 2 * px);
+  }
+
+  function renderSnakeGameOver() {
+    var w = canvas.width;
+    var h = canvas.height;
+
+    // Dark overlay
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
+    ctx.fillRect(0, 0, w, h);
+
+    // GAME OVER text
+    var goText = 'GAME OVER';
+    var goScale = 4;
+    var goWidth = measurePixelText(goText, goScale);
+    var goX = Math.floor((w - goWidth) / 2);
+    var goY = Math.floor(h * 0.25);
+    drawPixelText(ctx, goText, goX, goY, goScale, '#ff3333');
+
+    // Score
+    var scoreText = 'SCORE: ' + snake.score;
+    var scoreScale = 3;
+    var scoreWidth = measurePixelText(scoreText, scoreScale);
+    var scoreX = Math.floor((w - scoreWidth) / 2);
+    var scoreY = goY + goScale * 7 + 30;
+    drawPixelText(ctx, scoreText, scoreX, scoreY, scoreScale, '#00ccff');
+
+    // High score
+    if (snake.highScore > 0) {
+      var hiText = 'BEST: ' + snake.highScore;
+      var hiScale = 2;
+      var hiWidth = measurePixelText(hiText, hiScale);
+      var hiX = Math.floor((w - hiWidth) / 2);
+      drawPixelText(ctx, hiText, hiX, scoreY + scoreScale * 7 + 15, hiScale, '#888888');
+    }
+
+    // Funny message
+    if (snake.currentMessage) {
+      var msgScale = 1;
+      var msgWidth = measurePixelText(snake.currentMessage, msgScale);
+      var msgX = Math.floor((w - msgWidth) / 2);
+      var msgY = Math.floor(h * 0.55);
+      drawPixelText(ctx, snake.currentMessage, msgX, msgY, msgScale, '#ffcc00');
+    }
+
+    // Retry / Return
+    var retryText = 'PRESS ENTER TO RETRY';
+    var retryScale = 2;
+    var retryWidth = measurePixelText(retryText, retryScale);
+    var retryX = Math.floor((w - retryWidth) / 2);
+    var retryY = Math.floor(h * 0.7);
+    drawPixelText(ctx, retryText, retryX, retryY, retryScale, '#ffffff');
+
+    var escText = 'PRESS ESCAPE TO RETURN';
+    var escScale = 2;
+    var escWidth = measurePixelText(escText, escScale);
+    var escX = Math.floor((w - escWidth) / 2);
+    var escY = retryY + retryScale * 7 + 20;
+    drawPixelText(ctx, escText, escX, escY, escScale, '#aaaaaa');
+
+    drawCursorParticles();
+  }
+
+  // ---------------------------------------------------------------------------
   // Game Loop
   // ---------------------------------------------------------------------------
 
@@ -2944,6 +3410,12 @@
       if (progress >= 1) {
         gameState = STATE.PLAYING;
         titleAlpha = 0;
+      }
+    } else if (gameState === STATE.SNAKE) {
+      updateSnake(dt);
+      renderSnake();
+      if (snake.gameOver) {
+        renderSnakeGameOver();
       }
     } else {
       updatePlayer(dt);
