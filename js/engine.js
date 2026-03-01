@@ -2473,6 +2473,9 @@
     var creditX = Math.floor((w - creditWidth) / 2);
     var creditY = Math.floor(h * 0.85);
     drawPixelText(ctx, creditText, creditX, creditY, creditScale, 'rgba(100, 140, 80, 0.5)');
+
+    // Draw cursor sparkles on top of title screen
+    drawCursorParticles();
   }
 
   /**
@@ -2620,6 +2623,97 @@
   var canvas = document.getElementById('gameCanvas');
   var ctx = canvas.getContext('2d');
 
+  // ---------------------------------------------------------------------------
+  // Mouse Cursor Sparkle Trail
+  // ---------------------------------------------------------------------------
+
+  var mouseX = 0;
+  var mouseY = 0;
+  var lastSparkleX = 0;
+  var lastSparkleY = 0;
+  var cursorParticles = [];
+  var MAX_CURSOR_PARTICLES = 80;
+  var SPARKLE_COLORS = ['#ffd700', '#fff8dc', '#7bc24a', '#fffacd', '#f0e68c', '#98fb98'];
+
+  canvas.addEventListener('mousemove', function (e) {
+    var rect = canvas.getBoundingClientRect();
+    mouseX = e.clientX - rect.left;
+    mouseY = e.clientY - rect.top;
+
+    // Spawn sparkles based on distance moved (every ~8 pixels)
+    var dx = mouseX - lastSparkleX;
+    var dy = mouseY - lastSparkleY;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > 8) {
+      spawnCursorSparkle(mouseX, mouseY);
+      lastSparkleX = mouseX;
+      lastSparkleY = mouseY;
+    }
+  });
+
+  function spawnCursorSparkle(x, y) {
+    if (cursorParticles.length >= MAX_CURSOR_PARTICLES) {
+      cursorParticles.shift();
+    }
+    cursorParticles.push({
+      x: x + (Math.random() - 0.5) * 8,
+      y: y + (Math.random() - 0.5) * 8,
+      vx: (Math.random() - 0.5) * 0.8,
+      vy: (Math.random() - 0.5) * 0.8 - 0.3,
+      size: Math.random() * 4 + 2,
+      alpha: 1.0,
+      rotation: Math.random() * Math.PI * 2,
+      rotationSpeed: (Math.random() - 0.5) * 0.05,
+      color: SPARKLE_COLORS[Math.floor(Math.random() * SPARKLE_COLORS.length)],
+      life: 0,
+      maxLife: 600 + Math.random() * 400  // 600-1000ms
+    });
+  }
+
+  function updateCursorParticles(dt) {
+    for (var i = cursorParticles.length - 1; i >= 0; i--) {
+      var p = cursorParticles[i];
+      p.life += dt;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rotation += p.rotationSpeed;
+      p.alpha = Math.max(0, 1 - p.life / p.maxLife);
+      p.size *= 0.998;  // Slow shrink
+
+      if (p.alpha <= 0) {
+        cursorParticles.splice(i, 1);
+      }
+    }
+  }
+
+  function drawCursorStar(ctx, x, y, size, alpha, color, rotation) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = color;
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+    ctx.beginPath();
+    // 4-pointed star shape
+    ctx.moveTo(0, -size);
+    ctx.lineTo(size * 0.3, -size * 0.3);
+    ctx.lineTo(size, 0);
+    ctx.lineTo(size * 0.3, size * 0.3);
+    ctx.lineTo(0, size);
+    ctx.lineTo(-size * 0.3, size * 0.3);
+    ctx.lineTo(-size, 0);
+    ctx.lineTo(-size * 0.3, -size * 0.3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawCursorParticles() {
+    for (var i = 0; i < cursorParticles.length; i++) {
+      var p = cursorParticles[i];
+      drawCursorStar(ctx, p.x, p.y, p.size, p.alpha, p.color, p.rotation);
+    }
+  }
+
   // Disable anti-aliasing for crisp pixel art
   function disableSmoothing() {
     ctx.imageSmoothingEnabled = false;
@@ -2699,6 +2793,9 @@
 
     // Draw dialogue box (in screen space, not world space)
     drawDialogueBox(ctx, titleTime);
+
+    // Draw cursor sparkles on top of everything
+    drawCursorParticles();
   }
 
   // ---------------------------------------------------------------------------
@@ -2715,6 +2812,9 @@
     if (dt > 100) dt = 16;
 
     titleTime += dt;
+
+    // Update cursor sparkle particles (all states)
+    updateCursorParticles(dt);
 
     if (gameState === STATE.TITLE) {
       renderTitleScreen(titleTime);
