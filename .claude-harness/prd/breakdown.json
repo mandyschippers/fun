@@ -1,233 +1,88 @@
 {
   "version": 1,
-  "generatedAt": "2026-03-01T00:00:00.000Z",
-  "prdHash": "prd-20260301",
-  "features": [
-    {
-      "id": "feature-001",
-      "prdSource": { "section": "Core", "requirement": "R001" },
-      "name": "Canvas game engine with tile map",
-      "description": "HTML5 Canvas rendering engine with a tile-based map system, greenish background, and pixelated retro aesthetic",
-      "detailedDescription": "Set up the core game engine using HTML5 Canvas. Render a top-down tile map with a greenish color palette. Support a grid-based world that objects and the player character exist within. Use pixel-art style rendering (nearest-neighbor scaling, no anti-aliasing).",
-      "priority": 1,
-      "dependencies": [],
-      "acceptanceCriteria": [
-        {
-          "scenario": "Canvas renders tile map",
-          "given": "The page is loaded in a browser",
-          "when": "The canvas initializes",
-          "then": "A top-down tile map is rendered with greenish tiles filling the viewport"
-        },
-        {
-          "scenario": "Pixel-art rendering",
-          "given": "The canvas is rendering",
-          "when": "Tiles and sprites are drawn",
-          "then": "All graphics use nearest-neighbor scaling with no anti-aliasing blur"
-        }
-      ],
-      "riskLevel": "medium",
-      "estimatedComplexity": "medium",
-      "mvpFeature": true
-    },
-    {
-      "id": "feature-002",
-      "prdSource": { "section": "Core", "requirement": "R002" },
-      "name": "Arrow-key character movement",
-      "description": "A player character sprite that moves around the tile map using arrow keys, with collision boundaries",
-      "detailedDescription": "Create a character sprite rendered on the canvas. Listen for arrow key input and move the character smoothly across the tile grid. Implement basic collision detection so the character cannot walk off the map. Support sprite animation for walking directions.",
-      "priority": 2,
-      "dependencies": ["feature-001"],
-      "acceptanceCriteria": [
-        {
-          "scenario": "Character moves with arrow keys",
-          "given": "The game is loaded and the character is on screen",
-          "when": "The player presses an arrow key",
-          "then": "The character moves one tile in that direction with a walking animation"
-        },
-        {
-          "scenario": "Character stays in bounds",
-          "given": "The character is at the edge of the map",
-          "when": "The player presses an arrow key toward the edge",
-          "then": "The character does not move off the map"
-        },
-        {
-          "scenario": "Smooth movement feel",
-          "given": "The player holds an arrow key",
-          "when": "The key is held continuously",
-          "then": "The character moves continuously at a consistent pace"
-        }
-      ],
-      "riskLevel": "low",
-      "estimatedComplexity": "medium",
-      "mvpFeature": true
-    },
-    {
-      "id": "feature-003",
-      "prdSource": { "section": "Core", "requirement": "R005" },
-      "name": "Welcome to the Realm title screen",
-      "description": "A retro-styled title/landing screen with 'Welcome to the Realm' text and a press-start prompt",
-      "detailedDescription": "Display a title screen before gameplay begins. Show 'Welcome to the Realm' in a pixel font with a retro 90s aesthetic. Include a flashing 'Press any key to start' prompt. Transition into the game world when the player presses a key.",
-      "priority": 3,
-      "dependencies": ["feature-001"],
-      "acceptanceCriteria": [
-        {
-          "scenario": "Title screen displays on load",
-          "given": "A visitor opens the website",
-          "when": "The page finishes loading",
-          "then": "'Welcome to the Realm' is displayed in a pixel font with a retro aesthetic"
-        },
-        {
-          "scenario": "Start prompt and transition",
-          "given": "The title screen is displayed",
-          "when": "The visitor presses any key",
-          "then": "The title screen transitions to the game world"
-        }
-      ],
-      "riskLevel": "low",
-      "estimatedComplexity": "low",
-      "mvpFeature": true
-    },
-    {
-      "id": "feature-004",
-      "prdSource": { "section": "Core", "requirement": "R004" },
-      "name": "Interactive world objects",
-      "description": "Placeable objects on the map that the player can walk up to and interact with via a button press",
-      "detailedDescription": "Define an object system where items can be placed on specific tiles. When the player character is adjacent to an object and presses an action key (spacebar/enter), trigger an interaction. Objects should have pixel-art sprites and visual indicators that they are interactable.",
-      "priority": 4,
-      "dependencies": ["feature-001", "feature-002"],
-      "acceptanceCriteria": [
-        {
-          "scenario": "Objects are visible on the map",
-          "given": "The game world is loaded",
-          "when": "The player looks at the map",
-          "then": "Interactive objects are visible as distinct pixel-art sprites on specific tiles"
-        },
-        {
-          "scenario": "Player can interact with objects",
-          "given": "The character is adjacent to an interactive object",
-          "when": "The player presses spacebar or enter",
-          "then": "An interaction is triggered (e.g., dialogue box, animation, sound)"
-        },
-        {
-          "scenario": "Objects block movement",
-          "given": "An object occupies a tile",
-          "when": "The player tries to walk onto that tile",
-          "then": "The character is blocked and cannot pass through the object"
-        }
-      ],
-      "riskLevel": "low",
-      "estimatedComplexity": "medium",
-      "mvpFeature": true
-    },
-    {
-      "id": "feature-005",
-      "prdSource": { "section": "Theme", "requirement": "R006" },
-      "name": "Fantasy + sci-fi themed world design",
-      "description": "Themed tile art, objects, and environmental details blending fantasy and sci-fi elements",
-      "detailedDescription": "Design the tile map world with a mix of fantasy and sci-fi theming. Include things like medieval castles next to crashed spaceships, magic crystals beside computer terminals, swords in stones near lightsaber-esque items. The juxtaposition should feel intentional and funny.",
-      "priority": 5,
-      "dependencies": ["feature-001"],
-      "acceptanceCriteria": [
-        {
-          "scenario": "Mixed theme environment",
-          "given": "The player explores the world",
-          "when": "They look at the environment",
-          "then": "Both fantasy elements (trees, castles, crystals) and sci-fi elements (terminals, ships, tech) are present"
-        },
-        {
-          "scenario": "Coherent pixel art style",
-          "given": "All themed assets are rendered",
-          "when": "The player views any area of the map",
-          "then": "All art uses a consistent pixel-art style despite the genre mashup"
-        }
-      ],
-      "riskLevel": "medium",
-      "estimatedComplexity": "medium",
-      "mvpFeature": false
-    },
+  "generatedAt": "2026-03-01T12:00:00.000Z",
+  "existingFeatureUpdates": [
     {
       "id": "feature-006",
-      "prdSource": { "section": "Interactions", "requirement": "R007" },
-      "name": "Absurdist dialogue and interaction system",
-      "description": "A dialogue/text box system for NPC and object interactions featuring absurdist comedy writing",
-      "detailedDescription": "Implement a retro RPG-style text box that appears when interacting with objects or NPCs. Fill it with absurdist comedy — references to LOTR, Star Wars, Star Trek, Mythic Quest, Silicon Valley, Dead Pixels. Dialogue should be unexpected, meta, and funny. Examples: a sword that monologues about its LinkedIn profile, a wizard who only speaks in startup jargon.",
-      "priority": 6,
-      "dependencies": ["feature-004"],
-      "acceptanceCriteria": [
-        {
-          "scenario": "Dialogue box appears on interaction",
-          "given": "The player interacts with an object or NPC",
-          "when": "The interaction triggers",
-          "then": "A retro-styled text box appears with dialogue text that types out letter by letter"
-        },
-        {
-          "scenario": "Dialogue is funny and themed",
-          "given": "A dialogue box is showing",
-          "when": "The player reads the text",
-          "then": "The content is absurdist comedy with pop culture references"
-        },
-        {
-          "scenario": "Dialogue can be dismissed",
-          "given": "A dialogue box is open",
-          "when": "The player presses spacebar or enter",
-          "then": "The dialogue box closes and the player regains control"
-        }
-      ],
-      "riskLevel": "low",
-      "estimatedComplexity": "medium",
-      "mvpFeature": false
+      "change": "Update description to emphasize British comedy tone specifically",
+      "newDescription": "A dialogue/text box system for NPC and object interactions featuring dry British absurdist comedy writing"
     },
     {
       "id": "feature-007",
-      "prdSource": { "section": "Content", "requirement": "R007" },
-      "name": "Themed NPCs and interactive content",
-      "description": "Populate the world with funny NPCs and interactable items that reference favorite shows and absurdist humor",
-      "detailedDescription": "Create a cast of NPCs and objects that bring the world to life. Ideas: a Gandalf-like wizard who is also a sysadmin, a stormtrooper who missed his calling as a bard, a quest giver who just wants you to fix the Wi-Fi. Each interaction should be a self-contained comedic bit. Objects could include: a mysterious orb that shows you a 'terms of service' scroll, a treasure chest that contains only a single sock.",
-      "priority": 7,
-      "dependencies": ["feature-004", "feature-006"],
+      "change": "Update description to emphasize British comedy tone specifically",
+      "newDescription": "Populate the world with funny NPCs and interactable items featuring dry British humor and pop culture references"
+    }
+  ],
+  "newFeatures": [
+    {
+      "id": "feature-009",
+      "prdSource": {
+        "section": "World",
+        "requirement": "R009"
+      },
+      "name": "Scrolling camera with larger world map",
+      "description": "Expand the tile map to be much larger than the viewport and implement a camera that scrolls to follow the player character as they walk off-screen",
+      "detailedDescription": "The world should be significantly larger than the visible viewport. As the player walks toward the edge of the screen, the camera smoothly scrolls to reveal more of the world. The camera should center on the player and stop at world boundaries.",
+      "priority": 6,
+      "dependencies": ["feature-001", "feature-002"],
       "acceptanceCriteria": [
         {
-          "scenario": "Multiple NPCs in the world",
-          "given": "The player explores the map",
-          "when": "They encounter NPC characters",
-          "then": "At least 5 distinct NPCs are placed around the world with unique sprites"
+          "scenario": "World extends beyond the viewport",
+          "given": "The game world is loaded",
+          "when": "The full map dimensions are checked",
+          "then": "The world is at least 3x the viewport size in both dimensions"
         },
         {
-          "scenario": "Each interaction is unique",
-          "given": "The player interacts with different NPCs/objects",
-          "when": "They trigger each interaction",
-          "then": "Each NPC/object has its own unique dialogue or interaction behavior"
+          "scenario": "Camera follows player",
+          "given": "The player is moving across the map",
+          "when": "The character approaches the edge of the visible area",
+          "then": "The camera smoothly scrolls to keep the player centered on screen"
+        },
+        {
+          "scenario": "Camera stops at world boundaries",
+          "given": "The player is near the edge of the world map",
+          "when": "The camera would need to show area beyond the map",
+          "then": "The camera stops scrolling and the player moves toward the screen edge instead"
         }
       ],
-      "riskLevel": "low",
-      "estimatedComplexity": "low",
-      "mvpFeature": false
+      "riskLevel": "medium",
+      "estimatedComplexity": "medium",
+      "mvpFeature": true
     },
     {
-      "id": "feature-008",
-      "prdSource": { "section": "Aesthetic", "requirement": "R008" },
-      "name": "90s web nostalgia polish",
-      "description": "Visual flair inspired by 90s websites: hit counter, under construction GIF, guestbook, visitor counter, marquee text",
-      "detailedDescription": "Add 90s web nostalgia elements as either in-game objects or UI chrome around the canvas. Ideas: a fake hit counter at the bottom ('You are visitor #000,042'), a spinning 'under construction' GIF somewhere on the page, a marquee-scrolling message, comic sans in strategic places, a fake guestbook link. These elements should be both nostalgic and played for comedy.",
-      "priority": 8,
+      "id": "feature-010",
+      "prdSource": {
+        "section": "Visual Flair",
+        "requirement": "R010"
+      },
+      "name": "Mouse cursor sparkle trail",
+      "description": "A decorative particle effect that follows the mouse cursor, emitting little stars or sparkles even though the mouse isn't used for gameplay",
+      "detailedDescription": "Little stars or sparkles should follow the mouse cursor across the screen. This is purely decorative and adds to the whimsical 90s feel. The particles should fade out over time and not impact performance.",
+      "priority": 7,
       "dependencies": ["feature-001"],
       "acceptanceCriteria": [
         {
-          "scenario": "90s web elements visible",
-          "given": "The page is loaded",
-          "when": "The visitor views the full page",
-          "then": "At least 3 classic 90s web elements are visible (hit counter, under construction, marquee, etc.)"
+          "scenario": "Sparkles follow the mouse",
+          "given": "The game is running and the mouse is over the canvas",
+          "when": "The user moves their mouse",
+          "then": "Small star/sparkle particles appear at the cursor position and trail behind it"
         },
         {
-          "scenario": "Elements are comedic",
-          "given": "90s elements are displayed",
-          "when": "The visitor reads/views them",
-          "then": "The elements have a humorous twist (e.g., hit counter stuck at 42, guestbook signed by fictional characters)"
+          "scenario": "Particles fade and disappear",
+          "given": "Sparkle particles have been emitted",
+          "when": "A short time passes",
+          "then": "The particles fade out and are removed, keeping the screen clean"
+        },
+        {
+          "scenario": "No performance degradation",
+          "given": "The user is rapidly moving the mouse",
+          "when": "Many particles are on screen",
+          "then": "The game maintains smooth frame rate with no noticeable lag"
         }
       ],
       "riskLevel": "low",
       "estimatedComplexity": "low",
-      "mvpFeature": false
+      "mvpFeature": true
     }
   ]
 }
